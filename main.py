@@ -4,7 +4,7 @@ from names import AllNames
 
 max_sims = 25
 day_length = 16
-basic_info = ['gender', 'name', 'age']
+basic_info = ['gender', 'name', 'age', 'is_pregnant']
 genders = ('boy', 'girl')
 
 
@@ -36,37 +36,64 @@ class Simulation:
 
 	def sim_aging(self, sim):
 		sim.info['age'][1]['days_to_age_up'] -= 1
+
 		if sim.info['age'][1]['days_to_age_up'] < 0:
 			sim.info['age'][0] += 1
+
 			if sim.info['age'][0] > 6:
 				self.sims.remove(sim)
 				print(f'{sim.first_name} {sim.surname} died!')
 			else:
 				sim.add_to_info('age', sim.age_up())
 				print(f'{sim.first_name} {sim.surname} aged up to a(n) {sim.info["age"][1]["group"]}!')
+			
+	def give_birth(self, sim):
+		child = Offspring(sim)
+		child.generate()
 
-	def sim_births(self):
-		spawn_pc = 0.005
+		sim.offspring.append(child)
+		sim.preg_step, sim.preg_day = 0, 1
+		sim.info['is_pregnant'] = False
+		print(f'{sim.first_name} {sim.surname} gave birth to {child.first_name} {child.surname}!')
+		
+		time.sleep(2)
+
+	def pregnancy(self):
+		spawn_pc = 0.0033
+
+		def pregnancy_timer(sim):
+			sim.preg_step += 1
+
+			if sim.preg_step > day_length:
+				sim.preg_day += 1
+				sim.preg_step = 0
+
+			if sim.preg_day > 3:
+				self.give_birth(sim)
 
 		for sim in self.sims:
-			if random.random() < spawn_pc and sim.info['gender'] == 'girl' and sim.info['age'][0] >= 3:
-				child = Offspring(sim)
-				child.generate()
-				sim.offspring.append(child)
+			chance = random.random() < spawn_pc
+			female = sim.info['gender'] == 'girl'
+			old_enough = sim.info['age'][0] >= 3
+			pregnant = sim.info['is_pregnant']
 
-				print(f'{sim.first_name} {sim.surname} gave birth to {child.first_name} {child.surname}!')
+			if female and old_enough and chance and not pregnant:
+				sim.info['is_pregnant'] = True
+				print(f'{sim.first_name} {sim.surname} is pregnant!')
 
-				time.sleep(2)
+			if sim.info['is_pregnant']:
+				pregnancy_timer(sim)
 
 	def igt(self):
 		self.simulation_step += 1
-		s.sim_births()
+		s.pregnancy()
 
 		if self.simulation_step >= day_length:
 			self.simulation_day += 1
 			self.simulation_step = 0
+			
 			for sim in self.sims:
-				print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, age: {sim.info["age"][1]["days_to_age_up"]}')
+				print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, age: {sim.info["age"][1]["group"]}')
 
 		time.sleep(0.2)
 
@@ -99,11 +126,15 @@ class Sim:
 			s.sim_aging(self)
 
 	def generate(self):
-		self.properties = self.set_gender, self.set_name, self.set_age
+		self.properties = self.set_gender, self.set_name, self.set_age, self.is_pregnant
 		self.set_basic_info()
+
 		self.first_name, self.surname = self.info['name'][0], self.info['name'][1]
-		print(f'{self.first_name} {self.surname} spawned! {self.info["age"]}')
+		self.preg_step, self.preg_day = 0, 1
+		print(f'{self.first_name} {self.surname} spawned! {self.info["age"]} {self.info["is_pregnant"]}')
+		
 		s.sims.append(self)
+		s.sims.sort(key=lambda sim: sim.surname)
 	
 	def set_basic_info(self):
 		for func in self.properties:
@@ -119,6 +150,9 @@ class Sim:
 		
 	def set_age(self):
 		return list(random.choice(list(self.ages.items())[2:]))
+
+	def is_pregnant(self):
+		return False
 
 	def age_up(self):
 		return [self.info['age'][0], self.ages[self.info['age'][0]]]
