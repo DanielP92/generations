@@ -19,11 +19,15 @@ class AllNames:
     
     def __init__(cls):
         if os.path.exists('surnames.txt'):
-            print('ok')
+            print('surnames.txt exists')
         else:
             cls.write_all_surnames()
+
+        print('getting first names...')
         for url in first_names_urls:
             cls.get_first_names(url)
+            
+        print('getting surnames')
         cls.get_surnames()
 
 
