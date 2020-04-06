@@ -3,6 +3,7 @@ import time
 from names import AllNames
 
 max_sims = 25
+day_length = 16
 basic_info = ['gender', 'name', 'age']
 genders = ('boy', 'girl')
 
@@ -44,8 +45,6 @@ class Simulation:
 				sim.add_to_info('age', sim.age_up())
 				print(f'{sim.first_name} {sim.surname} aged up to a(n) {sim.info["age"][1]["group"]}!')
 
-		
-
 	def sim_births(self):
 		spawn_pc = 0.005
 
@@ -63,7 +62,7 @@ class Simulation:
 		self.simulation_step += 1
 		s.sim_births()
 
-		if self.simulation_step >= 8:
+		if self.simulation_step >= day_length:
 			self.simulation_day += 1
 			self.simulation_step = 0
 			for sim in self.sims:
@@ -83,18 +82,18 @@ class Sim:
 	def __init__(self):
 		self.info = {}
 		self.ages = {1: {'group': 'baby', 'days_to_age_up': 7},
-				  	 2: {'group': 'child', 'days_to_age_up': 14},
-				  	 3: {'group': 'teen', 'days_to_age_up': 21},
-				  	 4: {'group': 'yng_adult', 'days_to_age_up': 21},
-				  	 5: {'group': 'adult', 'days_to_age_up': 60},
-				  	 6: {'group': 'elder', 'days_to_age_up': 28},
+					 2: {'group': 'child', 'days_to_age_up': 14},
+					 3: {'group': 'teen', 'days_to_age_up': 21},
+					 4: {'group': 'yng_adult', 'days_to_age_up': 21},
+					 5: {'group': 'adult', 'days_to_age_up': 60},
+					 6: {'group': 'elder', 'days_to_age_up': 28},
 				    }
 		self.offspring = []
 
 	def update(self):
 		self.sim_step += 1
 	
-		if self.sim_step >= 8:
+		if self.sim_step >= day_length:
 			self.sim_day += 1
 			self.sim_step = 0
 			s.sim_aging(self)
@@ -119,7 +118,7 @@ class Sim:
 		return random.choice(genders)
 		
 	def set_age(self):
-		return list(random.choice(list(self.ages.items())))
+		return list(random.choice(list(self.ages.items())[2:]))
 
 	def age_up(self):
 		return [self.info['age'][0], self.ages[self.info['age'][0]]]
