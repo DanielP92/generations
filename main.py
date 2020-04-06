@@ -8,8 +8,8 @@ genders = ('boy', 'girl')
 
 
 class Simulation:
-	day = 1
-	step = 0
+	simulation_day = 1
+	simulation_step = 0
 
 	def __init__(self):
 		self.sims = []
@@ -17,6 +17,7 @@ class Simulation:
 
 	def main_loop(self):
 		spawn_pc = 0.05
+		print('simulation started')
 
 		while self.running:
 			self.igt()
@@ -25,24 +26,28 @@ class Simulation:
 				sim = Sim()
 				sim.generate()
 			elif len(self.sims) >= max_sims:
+				no_of_offspring = len([sim for sim in self.sims if isinstance(sim, Offspring)])
+				print(f'{no_of_offspring} children out of {len(self.sims)} sims') 
 				self.running = False
 
-	def sim_aging(self):
-		for sim in self.sims:
-			sim.info['age'][1]['days_to_age_up'] -= 1
+			for sim in self.sims:
+				sim.update()
 
-			if sim.info['age'][1]['days_to_age_up'] < 0:
-				sim.info['age'][0] += 1
-				if sim.info['age'][0] > 6:
-					self.sims.remove(sim)
-					print(f'{sim.first_name} {sim.surname} died!')
-				else:
-					sim.add_to_info('age', sim.age_up())
+	def sim_aging(self, sim):
+		sim.info['age'][1]['days_to_age_up'] -= 1
+		if sim.info['age'][1]['days_to_age_up'] < 0:
+			sim.info['age'][0] += 1
+			if sim.info['age'][0] > 6:
+				self.sims.remove(sim)
+				print(f'{sim.first_name} {sim.surname} died!')
+			else:
+				sim.add_to_info('age', sim.age_up())
+				print(f'{sim.first_name} {sim.surname} aged up to a(n) {sim.info["age"][1]["group"]}!')
 
-			print(sim.info['name'], sim.info['age'][1]['group'], sim.info['gender'])
+		
 
 	def sim_births(self):
-		spawn_pc = 0.05
+		spawn_pc = 0.005
 
 		for sim in self.sims:
 			if random.random() < spawn_pc and sim.info['gender'] == 'girl' and sim.info['age'][0] >= 3:
@@ -55,15 +60,14 @@ class Simulation:
 				time.sleep(2)
 
 	def igt(self):
-		self.step += 1
+		self.simulation_step += 1
+		s.sim_births()
 
-		if self.step >= 8:
-			self.day += 1
-			self.step = 0
-			self.sim_aging()
-			self.sim_births()
-			#print(self.day)
-			#print([sim.info for sim in self.sims])
+		if self.simulation_step >= 8:
+			self.simulation_day += 1
+			self.simulation_step = 0
+			for sim in self.sims:
+				print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, age: {sim.info["age"][1]["days_to_age_up"]}')
 
 		time.sleep(0.2)
 
@@ -73,6 +77,9 @@ n = AllNames()
 
 
 class Sim:
+	sim_day = 1
+	sim_step = 0
+
 	def __init__(self):
 		self.info = {}
 		self.ages = {1: {'group': 'baby', 'days_to_age_up': 7},
@@ -80,15 +87,22 @@ class Sim:
 				  	 3: {'group': 'teen', 'days_to_age_up': 21},
 				  	 4: {'group': 'yng_adult', 'days_to_age_up': 21},
 				  	 5: {'group': 'adult', 'days_to_age_up': 60},
-				  	 6: {'group': 'elder', 'days_to_age_up': 2},
+				  	 6: {'group': 'elder', 'days_to_age_up': 28},
 				    }
 		self.offspring = []
+
+	def update(self):
+		self.sim_step += 1
+	
+		if self.sim_step >= 8:
+			self.sim_day += 1
+			self.sim_step = 0
+			s.sim_aging(self)
 
 	def generate(self):
 		self.properties = self.set_gender, self.set_name, self.set_age
 		self.set_basic_info()
 		self.first_name, self.surname = self.info['name'][0], self.info['name'][1]
-
 		print(f'{self.first_name} {self.surname} spawned! {self.info["age"]}')
 		s.sims.append(self)
 	
