@@ -2,7 +2,7 @@ import random
 from names import AllNames
 from globals import *
 
-basic_info = ['gender', 'name', 'age', 'is_pregnant']
+basic_info = ['gender', 'name', 'age', 'is_pregnant', 'preference', 'eligable_partners']
 genders = ('boy', 'girl')
 n = AllNames()
 
@@ -19,6 +19,7 @@ class Sim:
                      5: {'group': 'adult', 'days_to_age_up': 60},
                      6: {'group': 'elder', 'days_to_age_up': 28},
                     }
+        self.partner = None
         self.offspring = []
 
     def update(self):
@@ -29,12 +30,13 @@ class Sim:
             self.step = 0
 
     def generate(self):
-        self.properties = self.set_gender, self.set_name, self.set_age, self.is_pregnant
+        self.properties = [self.set_gender, self.set_name, self.set_age, 
+                           self.is_pregnant, self.set_preference, self.set_eligable_partners]
         self.set_basic_info()
 
         self.first_name, self.surname = self.info['name'][0], self.info['name'][1]
         self.preg_step, self.preg_day = 0, 1
-        print(f'{self.first_name} {self.surname} spawned! {self.info["age"]} {self.info["is_pregnant"]}')
+        print(f'{self.first_name} {self.surname} spawned! {self.info["age"]} {self.info["gender"], {self.info["preference"]}, self.info["eligable_partners"]}')
     
     def set_basic_info(self):
         for func in self.properties:
@@ -47,6 +49,23 @@ class Sim:
 
     def set_gender(self):
         return random.choice(genders)
+
+    def set_preference(self):
+        homo_pc = 0.1
+        bi_pc = 0.3
+
+        if random.random() <= homo_pc:
+            return self.info['gender']
+        elif homo_pc > random.random() <= bi_pc:
+            return genders[0] + genders[1]
+        else:
+            for gender in genders:
+                if gender != self.info['gender']:
+                    return gender
+        print(chance)
+
+    def set_eligable_partners(self):
+        return list()
         
     def set_age(self):
         return list(random.choice(list(self.ages.items())[2:]))

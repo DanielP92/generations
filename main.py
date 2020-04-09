@@ -35,6 +35,8 @@ class Simulation:
 			for sim in self.sims:
 				sim.update()
 
+			self.find_relationships()
+
 	def add_to_list(self, sim):
 		self.sims.append(sim)
 		self.sims.sort(key=lambda sim: sim.surname)
@@ -46,12 +48,36 @@ class Simulation:
 			sim.info['age'][0] += 1
 
 			if sim.info['age'][0] > 6:
-				self.sims.remove(self)
+				self.sims.remove(sim)
 				print(f'{sim.first_name} {sim.surname} died!')
 			else:
 				sim.add_to_info('age', sim.age_up())
 				print(f'{sim.first_name} {sim.surname} aged up to a(n) {sim.info["age"][1]["group"]}!')
-			
+
+	def find_relationships(self):
+		single_sims = [sim for sim in self.sims if sim.partner == None]
+		for sim in single_sims:
+			current_sim = sim
+			current_sim_age = current_sim.info['age'][1]['group']
+			current_sim_gender = current_sim.info['gender']
+			current_sim_pref = current_sim.info['preference']
+
+			for sim in single_sims:
+				sim_single = sim.partner == None
+				sim_gender = sim.info['gender']
+				sim_pref = sim.info['preference']
+				sim_age = sim.info['age'][1]['group']
+
+				if sim_single and current_sim_age == sim_age and current_sim_gender in sim_pref and sim_gender in current_sim_pref:
+					if sim not in current_sim.info['eligable_partners']:
+						current_sim.info['eligable_partners'].append(sim)
+
+				if current_sim in current_sim.info['eligable_partners']:
+					current_sim.info['eligable_partners'].remove(current_sim)
+
+	def relationship_change(self):
+		pass
+
 	def give_birth(self, sim):
 		child = Offspring(sim)
 		child.generate()
@@ -109,8 +135,8 @@ class Simulation:
 			print(self.day_name)
 
 			for sim in self.sims:
-				print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, age: {sim.info["age"][1]["group"]}')
 				self.aging(sim)
+				print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]}'
 
 		time.sleep(0.2)
 
