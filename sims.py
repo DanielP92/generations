@@ -7,8 +7,8 @@ genders = ('boy', 'girl')
 n = AllNames()
 
 class Sim:
-    sim_day = 1
-    sim_step = 0
+    day = 1
+    step = 0
 
     def __init__(self):
         self.info = {}
@@ -22,12 +22,11 @@ class Sim:
         self.offspring = []
 
     def update(self):
-        self.sim_step += 1
+        self.step += 1
     
-        if self.sim_step >= DAY_LENGTH:
-            self.sim_day += 1
-            self.sim_step = 0
-            self.sim_aging()
+        if self.step >= DAY_LENGTH:
+            self.day += 1
+            self.step = 0
 
     def generate(self):
         self.properties = self.set_gender, self.set_name, self.set_age, self.is_pregnant
@@ -43,19 +42,6 @@ class Sim:
                 if str(item) in str(func):
                     self.add_to_info(item, func())
 
-    def sim_aging(self):
-        self.info['age'][1]['days_to_age_up'] -= 1
-
-        if self.info['age'][1]['days_to_age_up'] < 0:
-            self.info['age'][0] += 1
-
-            if self.info['age'][0] > 6:
-                self.sims.remove(self)
-                print(f'{self.first_name} {self.surname} died!')
-            else:
-                self.add_to_info('age', self.age_up())
-                print(f'{self.first_name} {self.surname} aged up to a(n) {self.info["age"][1]["group"]}!')
-
     def set_name(self):
         return [random.choice(n.first_names[self.info['gender']]), random.choice(n.surnames)]
 
@@ -66,7 +52,10 @@ class Sim:
         return list(random.choice(list(self.ages.items())[2:]))
 
     def is_pregnant(self):
-        return False
+        if self.info['gender'] == 'girl':
+            return False
+        elif self.info['gender'] == 'boy':
+            return None
 
     def age_up(self):
         return [self.info['age'][0], self.ages[self.info['age'][0]]]

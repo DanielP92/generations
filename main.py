@@ -6,8 +6,10 @@ from globals import *
 max_sims = 25
 
 class Simulation:
-	simulation_day = 1
-	simulation_step = 0
+	day = 1
+	step = 0
+	day_name_step = 1
+	day_name = DAYS[day_name_step]
 
 	def __init__(self):
 		self.sims = []
@@ -16,6 +18,7 @@ class Simulation:
 	def main_loop(self):
 		spawn_pc = 0.05
 		print('simulation started')
+		print(self.day_name)
 
 		while self.running:
 			self.igt()
@@ -35,6 +38,19 @@ class Simulation:
 	def add_to_list(self, sim):
 		self.sims.append(sim)
 		self.sims.sort(key=lambda sim: sim.surname)
+
+	def aging(self, sim):
+		sim.info['age'][1]['days_to_age_up'] -= 1
+
+		if sim.info['age'][1]['days_to_age_up'] < 0:
+			sim.info['age'][0] += 1
+
+			if sim.info['age'][0] > 6:
+				self.sims.remove(self)
+				print(f'{sim.first_name} {sim.surname} died!')
+			else:
+				sim.add_to_info('age', sim.age_up())
+				print(f'{sim.first_name} {sim.surname} aged up to a(n) {sim.info["age"][1]["group"]}!')
 			
 	def give_birth(self, sim):
 		child = Offspring(sim)
@@ -49,7 +65,7 @@ class Simulation:
 		time.sleep(2)
 
 	def pregnancy(self):
-		spawn_pc = 0.0033
+		spawn_pc = 0.01
 
 		def pregnancy_timer(sim):
 			sim.preg_step += 1
@@ -66,8 +82,9 @@ class Simulation:
 			female = sim.info['gender'] == 'girl'
 			old_enough = sim.info['age'][0] >= 3
 			pregnant = sim.info['is_pregnant']
+			spawn_day = self.day_name in ["Monday", "Wednesday", "Friday"]
 
-			if female and old_enough and chance and not pregnant:
+			if spawn_day and female and old_enough and chance and not pregnant:
 				sim.info['is_pregnant'] = True
 				print(f'{sim.first_name} {sim.surname} is pregnant!')
 
@@ -75,15 +92,25 @@ class Simulation:
 				pregnancy_timer(sim)
 
 	def igt(self):
-		self.simulation_step += 1
-		s.pregnancy()
+		self.step += 1
+		self.pregnancy()
 
-		if self.simulation_step >= DAY_LENGTH:
-			self.simulation_day += 1
-			self.simulation_step = 0
+		if self.step >= DAY_LENGTH:
+			self.day += 1
+			self.step = 0
+
+			if self.day_name_step < 7:
+				self.day_name_step += 1
+			else:
+				self.day_name_step = 1
+			
+			self.day_name = DAYS[self.day_name_step]
+
+			print(self.day_name)
 
 			for sim in self.sims:
 				print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, age: {sim.info["age"][1]["group"]}')
+				self.aging(sim)
 
 		time.sleep(0.2)
 
@@ -91,4 +118,4 @@ class Simulation:
 s = Simulation()
 
 if __name__ == "__main__":
-    s.main_loop()
+	s.main_loop()
