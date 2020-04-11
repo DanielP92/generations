@@ -29,6 +29,8 @@ class Sim:
             self.day += 1
             self.step = 0
             self.relationship_change()
+            if self.partner == None:
+                self.set_partner()
 
     def generate(self):
         self.properties = [self.set_gender, self.set_name, self.set_age,
@@ -41,7 +43,7 @@ class Sim:
 
     def relationship_change(self):
         for sim in self.info['eligable_partners']:
-            new_val = self.info['eligable_partners'][sim] + random.randint(-5, 10)
+            new_val = self.info['eligable_partners'][sim] + random.randint(-2, 15)
             self.info['eligable_partners'].update({sim: new_val})
 
     def set_basic_info(self):
@@ -49,6 +51,17 @@ class Sim:
             for item in basic_info:
                 if str(item) in str(func):
                     self.add_to_info(item, func())
+
+    def set_partner(self):
+        threshold = 65
+        for sim in self.info['eligable_partners']:
+            if self in sim.info['eligable_partners']:
+                rel1 = self.info['eligable_partners'][sim]
+                rel2 = sim.info['eligable_partners'][self]
+                if rel1 >= threshold and rel2 >= threshold:
+                    sim.partner = self
+                    self.partner = sim
+                    print(f'{self.first_name} {self.surname} and {sim.first_name} {sim.surname} are now partners!')
 
     def set_name(self):
         return [random.choice(n.first_names[self.info['gender']]), random.choice(n.surnames)]

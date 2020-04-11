@@ -68,13 +68,13 @@ class Simulation:
 				sim_age = sim.info['age'][1]['group']
 
 				if sim_single and current_sim_age == sim_age and current_sim_gender in sim_pref and sim_gender in current_sim_pref:
-					if f'{sim.first_name} {sim.surname}' in current_sim.info['eligable_partners']:
+					if sim in current_sim.info['eligable_partners']:
 						pass
 					else:
-						current_sim.info['eligable_partners'].update({f'{sim.first_name} {sim.surname}': int()})
+						current_sim.info['eligable_partners'].update({sim: int()})
 
-				if f'{current_sim.first_name} {current_sim.surname}' in current_sim.info['eligable_partners']:
-					del current_sim.info['eligable_partners'][f'{current_sim.first_name} {current_sim.surname}']
+				if current_sim in current_sim.info['eligable_partners']:
+					del current_sim.info['eligable_partners'][sim]
 
 	def give_birth(self, sim):
 		child = Offspring(sim)
@@ -106,9 +106,10 @@ class Simulation:
 			female = sim.info['gender'] == 'girl'
 			old_enough = sim.info['age'][0] >= 3
 			pregnant = sim.info['is_pregnant']
+			partnered = sim.partner
 			spawn_day = self.day_name in ["Monday", "Wednesday", "Friday"]
 
-			if spawn_day and female and old_enough and chance and not pregnant:
+			if spawn_day and female and old_enough and chance and partnered and not pregnant:
 				sim.info['is_pregnant'] = True
 				print(f'{sim.first_name} {sim.surname} is pregnant!')
 
