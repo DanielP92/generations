@@ -24,20 +24,26 @@ class Sim:
 
     def update(self):
         self.step += 1
-    
+
         if self.step >= DAY_LENGTH:
             self.day += 1
             self.step = 0
+            self.relationship_change()
 
     def generate(self):
-        self.properties = [self.set_gender, self.set_name, self.set_age, 
+        self.properties = [self.set_gender, self.set_name, self.set_age,
                            self.is_pregnant, self.set_preference, self.set_eligable_partners]
         self.set_basic_info()
 
         self.first_name, self.surname = self.info['name'][0], self.info['name'][1]
         self.preg_step, self.preg_day = 0, 1
         print(f'{self.first_name} {self.surname} spawned! {self.info["age"]} {self.info["gender"], {self.info["preference"]}, self.info["eligable_partners"]}')
-    
+
+    def relationship_change(self):
+        for sim in self.info['eligable_partners']:
+            new_val = self.info['eligable_partners'][sim] + random.randint(-5, 10)
+            self.info['eligable_partners'].update({sim: new_val})
+
     def set_basic_info(self):
         for func in self.properties:
             for item in basic_info:
@@ -62,11 +68,10 @@ class Sim:
             for gender in genders:
                 if gender != self.info['gender']:
                     return gender
-        print(chance)
 
     def set_eligable_partners(self):
-        return list()
-        
+        return dict()
+
     def set_age(self):
         return list(random.choice(list(self.ages.items())[2:]))
 
@@ -87,7 +92,7 @@ class Offspring(Sim):
     def __init__(self, mother):
         self.mother = mother
         super().__init__()
-        
+
     def set_age(self):
         first_age = list(self.ages.keys())[0]
         return [first_age, {key: value for key, value in self.ages[first_age].items()}]

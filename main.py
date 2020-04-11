@@ -27,15 +27,14 @@ class Simulation:
 				sim = Sim()
 				sim.generate()
 				self.add_to_list(sim)
+				self.find_relationships()
 			elif len(self.sims) >= max_sims:
 				no_of_offspring = len([sim for sim in self.sims if isinstance(sim, Offspring)])
-				print(f'{no_of_offspring} children out of {len(self.sims)} sims') 
+				print(f'{no_of_offspring} children out of {len(self.sims)} sims')
 				self.running = False
 
 			for sim in self.sims:
 				sim.update()
-
-			self.find_relationships()
 
 	def add_to_list(self, sim):
 		self.sims.append(sim)
@@ -55,7 +54,7 @@ class Simulation:
 				print(f'{sim.first_name} {sim.surname} aged up to a(n) {sim.info["age"][1]["group"]}!')
 
 	def find_relationships(self):
-		single_sims = [sim for sim in self.sims if sim.partner == None]
+		single_sims = [sim for sim in self.sims if sim.partner is None and sim.info['age'][0] >= 3]
 		for sim in single_sims:
 			current_sim = sim
 			current_sim_age = current_sim.info['age'][1]['group']
@@ -63,20 +62,19 @@ class Simulation:
 			current_sim_pref = current_sim.info['preference']
 
 			for sim in single_sims:
-				sim_single = sim.partner == None
+				sim_single = sim.partner is None
 				sim_gender = sim.info['gender']
 				sim_pref = sim.info['preference']
 				sim_age = sim.info['age'][1]['group']
 
 				if sim_single and current_sim_age == sim_age and current_sim_gender in sim_pref and sim_gender in current_sim_pref:
-					if sim not in current_sim.info['eligable_partners']:
-						current_sim.info['eligable_partners'].append(sim)
+					if f'{sim.first_name} {sim.surname}' in current_sim.info['eligable_partners']:
+						pass
+					else:
+						current_sim.info['eligable_partners'].update({f'{sim.first_name} {sim.surname}': int()})
 
-				if current_sim in current_sim.info['eligable_partners']:
-					current_sim.info['eligable_partners'].remove(current_sim)
-
-	def relationship_change(self):
-		pass
+				if f'{current_sim.first_name} {current_sim.surname}' in current_sim.info['eligable_partners']:
+					del current_sim.info['eligable_partners'][f'{current_sim.first_name} {current_sim.surname}']
 
 	def give_birth(self, sim):
 		child = Offspring(sim)
@@ -87,7 +85,7 @@ class Simulation:
 		sim.preg_step, sim.preg_day = 0, 1
 		sim.info['is_pregnant'] = False
 		print(f'{sim.first_name} {sim.surname} gave birth to {child.first_name} {child.surname}!')
-		
+
 		time.sleep(2)
 
 	def pregnancy(self):
@@ -129,14 +127,14 @@ class Simulation:
 				self.day_name_step += 1
 			else:
 				self.day_name_step = 1
-			
+
 			self.day_name = DAYS[self.day_name_step]
 
 			print(self.day_name)
 
 			for sim in self.sims:
 				self.aging(sim)
-				print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]}'
+				print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]} relationships: {sim.info["eligable_partners"]}')
 
 		time.sleep(0.2)
 
