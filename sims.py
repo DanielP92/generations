@@ -22,6 +22,9 @@ class Sim:
         self.partner = None
         self.offspring = []
 
+    def __str__(self):
+        return f'{self.first_name} {self.surname}'
+
     def update(self):
         self.step += 1
 
@@ -39,7 +42,7 @@ class Sim:
 
         self.first_name, self.surname = self.info['name'][0], self.info['name'][1]
         self.preg_step, self.preg_day = 0, 1
-        print(f'{self.first_name} {self.surname} spawned! {self.info["age"]} {self.info["gender"], {self.info["preference"]}, self.info["eligable_partners"]}')
+        print(f'{self.first_name} {self.surname} spawned! {self.info["age"]}, {self.info["gender"]}, {self.info["preference"]}, {self.info["eligable_partners"]}')
 
     def relationship_change(self):
         for sim in self.info['eligable_partners']:
@@ -58,7 +61,7 @@ class Sim:
             if self in sim.info['eligable_partners']:
                 rel1 = self.info['eligable_partners'][sim]
                 rel2 = sim.info['eligable_partners'][self]
-                if rel1 >= threshold and rel2 >= threshold:
+                if rel1 >= threshold and rel2 >= threshold and self.partner == None and sim.partner == None:
                     sim.partner = self
                     self.partner = sim
                     print(f'{self.first_name} {self.surname} and {sim.first_name} {sim.surname} are now partners!')

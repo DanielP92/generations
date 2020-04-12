@@ -27,7 +27,7 @@ class Simulation:
 				sim = Sim()
 				sim.generate()
 				self.add_to_list(sim)
-				self.find_relationships()
+				self.find_partners()
 			elif len(self.sims) >= max_sims:
 				no_of_offspring = len([sim for sim in self.sims if isinstance(sim, Offspring)])
 				print(f'{no_of_offspring} children out of {len(self.sims)} sims')
@@ -53,7 +53,7 @@ class Simulation:
 				sim.add_to_info('age', sim.age_up())
 				print(f'{sim.first_name} {sim.surname} aged up to a(n) {sim.info["age"][1]["group"]}!')
 
-	def find_relationships(self):
+	def find_partners(self):
 		single_sims = [sim for sim in self.sims if sim.partner is None and sim.info['age'][0] >= 3]
 		for sim in single_sims:
 			current_sim = sim
@@ -135,7 +135,7 @@ class Simulation:
 
 			for sim in self.sims:
 				self.aging(sim)
-				print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]} relationships: {sim.info["eligable_partners"]}')
+				#print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]} relationships: {sim.info["eligable_partners"]}')
 
 		time.sleep(0.2)
 
