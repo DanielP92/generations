@@ -19,8 +19,11 @@ class Sim:
                      5: {'group': 'adult', 'days_to_age_up': 60},
                      6: {'group': 'elder', 'days_to_age_up': 28},
                     }
+        self.properties = [self.set_gender, self.set_name, self.set_age,
+                           self.is_pregnant, self.set_preference, self.set_eligable_partners]
+        self.preg_step, self.preg_day = 0, 1
         self.partner = None
-        self.offspring = []
+        self.family = Family(self)
 
     def __str__(self):
         return f'{self.first_name} {self.surname}'
@@ -32,21 +35,21 @@ class Sim:
             self.day += 1
             self.step = 0
             self.relationship_change()
+            self.family.update_siblings()
             if self.partner == None:
                 self.set_partner()
 
     def generate(self):
-        self.properties = [self.set_gender, self.set_name, self.set_age,
-                           self.is_pregnant, self.set_preference, self.set_eligable_partners]
         self.set_basic_info()
-
         self.first_name, self.surname = self.info['name'][0], self.info['name'][1]
-        self.preg_step, self.preg_day = 0, 1
-        print(f'{self.first_name} {self.surname} spawned! {self.info["age"]}, {self.info["gender"]}, {self.info["preference"]}, {self.info["eligable_partners"]}')
+        self.family.set_other_members()
+        print(f'{self.first_name} {self.surname} spawned! {self.info["age"]}, {self.info["gender"]}, {self.info["preference"]}')
 
     def relationship_change(self):
         for sim in self.info['eligable_partners']:
             new_val = self.info['eligable_partners'][sim] + random.randint(-2, 15)
+            if new_val > 100:
+                new_val = 100
             self.info['eligable_partners'].update({sim: new_val})
 
     def set_basic_info(self):
@@ -62,12 +65,25 @@ class Sim:
                 rel1 = self.info['eligable_partners'][sim]
                 rel2 = sim.info['eligable_partners'][self]
                 if rel1 >= threshold and rel2 >= threshold and self.partner == None and sim.partner == None:
+                    surname = random.choice([self.surname, sim.surname, f'{self.surname}-{sim.surname}', f'{sim.surname}-{self.surname}'])
                     sim.partner = self
                     self.partner = sim
+                    self.info['name'][1] = sim.info['name'][1] = surname
+                    self.surname = sim.surname = surname
                     print(f'{self.first_name} {self.surname} and {sim.first_name} {sim.surname} are now partners!')
 
     def set_name(self):
-        return [random.choice(n.first_names[self.info['gender']]), random.choice(n.surnames)]
+        return [random.choice(n.first_names[self.info['gender']]), self.family.mother.info['name'][1]]
+
+    def set_parents(self):
+        mum, dad = self.family.mother, self.family.father
+        mum, dad = Sim(), Sim()
+        mum.info.update({'gender': genders[1]})
+        dad.info.update({'gender': genders[0]})
+        mum.info.update({'name': [random.choice(n.first_names[mum.info['gender']]), random.choice(n.surnames)]})
+        dad.info.update({'name': [random.choice(n.first_names[dad.info['gender']]), mum.info['name'][1]]})
+        self.family.mother, self.family.father = mum, dad
+        print(self.family.mother.info, self.family.father.info)
 
     def set_gender(self):
         return random.choice(genders)
@@ -105,13 +121,38 @@ class Sim:
 
 
 class Offspring(Sim):
-    def __init__(self, mother):
-        self.mother = mother
+    def __init__(self, mother, father):
         super().__init__()
+        self.family.mother, self.family.father = mother, father
 
     def set_age(self):
         first_age = list(self.ages.keys())[0]
         return [first_age, {key: value for key, value in self.ages[first_age].items()}]
 
     def set_name(self):
-        return [random.choice(n.first_names[self.info['gender']]), self.mother.surname]
+        return [random.choice(n.first_names[self.info['gender']]), self.family.mother.surname]
+
+
+class Family:
+    def __init__(self, sim):
+        self.sim = sim
+        self.mother = None
+        self.father = None
+        self.grandparents = []
+        self.offspring = []
+        self.siblings = []
+        self.aunts = []
+        self.uncles = []
+        self.cousins = []
+
+    def update_siblings(self):
+        self.siblings = [x for x in self.mother.family.offspring + self.father.family.offspring if x != self.sim]
+        self.siblings = (list(dict.fromkeys(self.siblings)))
+
+    def set_other_members(self):
+        self.parents = [self.mother, self.father]
+        self.grandparents = [[x.family.mother, x.family.father] for x in self.parents]
+        self.update_siblings()
+        self.aunts = [x for x in self.mother.family.siblings + self.father.family.siblings if x.info['gender'] == 'girl']
+        self.uncles = [x for x in self.mother.family.siblings + self.father.family.siblings if x.info['gender'] == 'boy']
+        self.cousins = [x.offspring for x in self.aunts + self.uncles]

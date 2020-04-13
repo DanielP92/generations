@@ -25,6 +25,7 @@ class Simulation:
 
 			if random.random() < spawn_pc and len(self.sims) <= max_sims:
 				sim = Sim()
+				sim.set_parents()
 				sim.generate()
 				self.add_to_list(sim)
 				self.find_partners()
@@ -77,11 +78,14 @@ class Simulation:
 					del current_sim.info['eligable_partners'][sim]
 
 	def give_birth(self, sim):
-		child = Offspring(sim)
+		child = Offspring(sim, sim.partner)
 		child.generate()
+		for offspring in sim.family.offspring:
+			offspring.family.update_siblings()
 		self.add_to_list(child)
 
-		sim.offspring.append(child)
+		sim.family.offspring.append(child)
+		sim.partner.family.offspring.append(child)
 		sim.preg_step, sim.preg_day = 0, 1
 		sim.info['is_pregnant'] = False
 		print(f'{sim.first_name} {sim.surname} gave birth to {child.first_name} {child.surname}!')
@@ -135,7 +139,11 @@ class Simulation:
 
 			for sim in self.sims:
 				self.aging(sim)
-				#print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]} relationships: {sim.info["eligable_partners"]}')
+				print(f'name: {sim.first_name} {sim.surname}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]} relationships: {sim.info["eligable_partners"]}')
+				if isinstance(sim, Offspring):
+					print([[x[0].info['name'], x[1].info['name']] for x in sim.family.grandparents])
+				print([x.info['name'] for x in sim.family.parents])
+				print([x.info['name'] for x in sim.family.siblings])
 
 		time.sleep(0.2)
 
