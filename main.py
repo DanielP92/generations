@@ -3,7 +3,7 @@ import time
 from sims import Sim, Offspring
 from globals import *
 
-max_sims = 1500
+max_sims = 1000
 
 class Simulation:
 	day = 1
@@ -36,6 +36,7 @@ class Simulation:
 				print(f'{no_of_offspring} children out of {len(self.alive_sims)} sims')
 				for family in self.families:
 					print(family.u_id)
+				self.find_longest_generation()
 				self.running = False
 
 			for sim in self.alive_sims:
@@ -67,7 +68,7 @@ class Simulation:
 				print(f'{sim.first_name} {sim.surname} died!')
 			else:
 				sim.add_to_info('age', sim.age_up())
-				print(f'{sim.first_name} {sim.surname} aged up to a(n) {sim.info["age"][1]["group"]}!')
+				print(f'{str(sim)} aged up to a(n) {sim.info["age"][1]["group"]}!')
 
 	def find_partners(self):
 		single_sims = [sim for sim in self.alive_sims if sim.partner is None and sim.info['age'][0] >= 3]
@@ -77,7 +78,6 @@ class Simulation:
 			current_sim_gender = current_sim.info['gender']
 			current_sim_pref = current_sim.info['preference']
 			current_sim_uid = current_sim.family.grandparents[0].family.u_id
-			print(current_sim_uid)
 
 			for sim in single_sims:
 				sim_single = sim.partner is None
@@ -177,9 +177,25 @@ class Simulation:
 		print('aunts:', [str(x) for x in sim.family.aunts])
 		print('uncles:', [str(x) for x in sim.family.uncles])
 		print('cousins:', [str(x) for x in sim.family.cousins])
+		print('2nd cousins:', [str(x) for x in sim.family.second_cousins])
 		print('children:', [str(s) for s in sim.family.offspring])
 		print(sim.family.u_id)
 		print('\n')
+
+	def find_longest_generation(self):
+		ids = [x.u_id for x in self.families]
+		longest_id = max(ids, key=len)
+		base = longest_id[:36]
+		print(longest_id)
+		print(base)
+		whole_family = []
+		for family in self.families:
+			if base in family.u_id:
+				whole_family.append(family.sim)
+				whole_family.sort(key=lambda sim: len(sim.family.u_id))
+
+		for sim in whole_family:
+			print(sim)
 
 
 s = Simulation()

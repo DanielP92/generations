@@ -182,6 +182,7 @@ class Family:
         self.aunts = []
         self.uncles = []
         self.cousins = []
+        self.second_cousins = []
         self.offspring = []
 
         self.u_id = str(uuid.uuid4())
@@ -196,6 +197,14 @@ class Family:
                 if cousin not in self.cousins:
                     self.cousins.append(cousin)
                     self.cousins.sort(key=lambda sim: sim.surname)
+   
+    def update_2nd_cousins(self):
+        offspring_list = [x.family.offspring for x in [self.mother.family.cousins, self.father.family.cousins] for x in x if len(x.family.offspring) != 0]            
+        for cousin_list in offspring_list:
+            for cousin in cousin_list:
+                if cousin not in self.second_cousins:
+                    self.second_cousins.append(cousin)
+                    self.second_cousins.sort(key=lambda sim: sim.surname)
 
     def update_grandparents(self):
         grandparent_list = [[x.family.mother, x.family.father] for x in self.parents]
@@ -211,3 +220,4 @@ class Family:
         self.aunts = [x for x in [self.mother.family.siblings, self.father.family.siblings] for x in x if x.info['gender'] == 'girl']
         self.uncles = [x for x in [self.mother.family.siblings, self.father.family.siblings] for x in x if x.info['gender'] == 'boy']
         self.update_cousins()
+        self.update_2nd_cousins()

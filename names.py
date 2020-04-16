@@ -48,7 +48,7 @@ class AllNames:
                     cls.first_names[key].append(name)
 
     def get_surnames(cls):
-        with open('surnames.txt', 'r') as text_file:
+        with open('surnames.txt','r', encoding='utf-8') as text_file:
             for name in text_file:
                 cls.surnames.append(name.strip())
 
