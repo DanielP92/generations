@@ -43,6 +43,7 @@ class Sim:
     def generate(self):
         self.set_basic_info()
         self.family.set_other_members()
+        self.family.gen = self.family.mother.family.gen + 1
         print(f'{self} spawned! {self.info["age"]}, {self.info["gender"]}, {self.info["preference"]}')
 
     def relationship_change(self):
@@ -113,6 +114,7 @@ class Sim:
             sim.info.update({'name': [random.choice(n.first_names[mum.info['gender']]), random.choice(n.surnames)]})
             sim.first_name, sim.surname = sim.info['name'][0], sim.info['name'][1]
         for sim in males:
+            sim.family.u_id = self.family.u_id
             sim.info.update({'gender': genders[0]})
             sim.info.update({'name': [random.choice(n.first_names[dad.info['gender']]), mum.info['name'][1]]})
             sim.first_name, sim.surname = sim.info['name'][0], sim.info['name'][1]
@@ -142,7 +144,7 @@ class Sim:
         return dict()
 
     def set_age(self):
-        return list(random.choice(list(self.ages.items())[2:]))
+        return list(random.choice(list(self.ages.items())[2:5]))
 
     def is_pregnant(self):
         if self.info['gender'] == 'girl':
@@ -161,7 +163,7 @@ class Offspring(Sim):
     def __init__(self, mother, father):
         super().__init__()
         self.family.mother, self.family.father = mother, father
-        self.family.u_id = str(self.family.mother.family.u_id) + '-' + str(self.family.father.family.u_id)
+        self.family.u_id = str(self.family.mother.family.u_id) + str(self.family.father.family.u_id)
 
     def set_age(self):
         first_age = list(self.ages.keys())[0]
@@ -169,7 +171,6 @@ class Offspring(Sim):
 
     def set_name(self):
         return [random.choice(n.first_names[self.info['gender']]), self.family.mother.surname]
-
 
 class Family:
     def __init__(self, sim):
@@ -186,6 +187,7 @@ class Family:
         self.offspring = []
 
         self.u_id = str(uuid.uuid4())
+        self.gen = 0
 
     def update_siblings(self):
         self.siblings = (list(dict.fromkeys([x for x in self.mother.family.offspring + self.father.family.offspring if x != self.sim])))

@@ -3,7 +3,7 @@ import time
 from sims import Sim, Offspring
 from globals import *
 
-max_sims = 1000
+max_sims = 2250
 
 class Simulation:
 	day = 1
@@ -17,6 +17,20 @@ class Simulation:
 		self.families = []
 		self.running = True
 
+	def spawn_sim(self):
+		sim = Sim()
+		sim.set_parents()
+		sim.generate()
+		self.add_to_lists(sim, sim.family)
+		self.find_partners()
+
+	def stop_simulation(self):
+		no_of_offspring = len([sim for sim in self.alive_sims if isinstance(sim, Offspring)])
+		print(f'{no_of_offspring} children out of {len(self.alive_sims)} sims')
+				
+		self.get_original_sims()
+		self.running = False
+
 	def main_loop(self):
 		spawn_pc = 0.05
 		print('simulation started')
@@ -26,19 +40,10 @@ class Simulation:
 			self.igt()
 
 			if random.random() < spawn_pc and len(self.alive_sims) <= max_sims:
-				sim = Sim()
-				sim.set_parents()
-				sim.generate()
-				self.add_to_lists(sim, sim.family)
-				self.find_partners()
+				self.spawn_sim()
 			elif len(self.alive_sims) >= max_sims:
-				no_of_offspring = len([sim for sim in self.alive_sims if isinstance(sim, Offspring)])
-				print(f'{no_of_offspring} children out of {len(self.alive_sims)} sims')
-				for family in self.families:
-					print(family.u_id)
-				self.get_original_sims()
-				self.running = False
-
+				self.top_simulation()
+			
 			for sim in self.alive_sims:
 				sim.update()
 
@@ -165,7 +170,7 @@ class Simulation:
 				self.aging(sim)
 				self.print_data(sim)
 
-		#time.sleep(0.2)
+		time.sleep(0.1)
 
 	def print_data(self, sim):
 		print(f'name: {str(sim)}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]}')
@@ -189,10 +194,10 @@ class Simulation:
 
 			for sim in self.all_sims:
 				if original.family.u_id in sim.family.u_id:
-					family_list.append(sim)
-					family_list.sort(key=lambda sim: len(sim.family.u_id))
+					family_list.append([sim, [sim.family.mother.family.gen, sim.family.father.family.gen], sim.family.gen])
+					family_list.sort(key=lambda x: x[2])
 
-			print([str(x) for x in family_list])
+			print([[str(x[0]), x[1], x[2]] for x in family_list])
 
 
 s = Simulation()
