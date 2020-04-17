@@ -3,7 +3,7 @@ import time
 from sims import Sim, Offspring
 from globals import *
 
-max_sims = 2250
+max_sims = 500
 
 class Simulation:
 	day = 1
@@ -42,7 +42,7 @@ class Simulation:
 			if random.random() < spawn_pc and len(self.alive_sims) <= max_sims:
 				self.spawn_sim()
 			elif len(self.alive_sims) >= max_sims:
-				self.top_simulation()
+				self.stop_simulation()
 			
 			for sim in self.alive_sims:
 				sim.update()
@@ -183,8 +183,7 @@ class Simulation:
 		print('uncles:', [str(x) for x in sim.family.uncles])
 		print('cousins:', [str(x) for x in sim.family.cousins])
 		print('children:', [str(x) for x in sim.family.offspring])
-		print(sim.family.u_id)
-		print('\n')
+		print(f'{len(self.alive_sims)} sims alive.')
 
 	def get_original_sims(self):
 		originals = [sim for sim in self.all_sims if not isinstance(sim, Offspring)]
