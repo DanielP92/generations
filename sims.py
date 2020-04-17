@@ -190,28 +190,24 @@ class Family:
     def update_siblings(self):
         self.siblings = (list(dict.fromkeys([x for x in self.mother.family.offspring + self.father.family.offspring if x != self.sim])))
 
+    def update_iterator(self, list_1, list_2):
+        for sim_info in list_1:
+            for sim in sim_info:
+                if sim not in list_2:
+                    list_2.append(sim)
+                    list_2.sort(key=lambda x: x.surname)
+
     def update_cousins(self):
         offspring_list = [x.family.offspring for x in [self.aunts, self.uncles] for x in x if len(x.family.offspring) != 0]            
-        for cousin_list in offspring_list:
-            for cousin in cousin_list:
-                if cousin not in self.cousins:
-                    self.cousins.append(cousin)
-                    self.cousins.sort(key=lambda sim: sim.surname)
+        self.update_iterator(offspring_list, self.cousins)
    
     def update_2nd_cousins(self):
         offspring_list = [x.family.offspring for x in [self.mother.family.cousins, self.father.family.cousins] for x in x if len(x.family.offspring) != 0]            
-        for cousin_list in offspring_list:
-            for cousin in cousin_list:
-                if cousin not in self.second_cousins:
-                    self.second_cousins.append(cousin)
-                    self.second_cousins.sort(key=lambda sim: sim.surname)
+        self.update_iterator(offspring_list, self.second_cousins)
 
     def update_grandparents(self):
         grandparent_list = [[x.family.mother, x.family.father] for x in self.parents]
-        for grandparents in grandparent_list:
-            for grandparent in grandparents:
-                if grandparent not in self.grandparents:
-                    self.grandparents.append(grandparent)
+        self.update_iterator(grandparent_list, self.grandparents)
 
     def set_other_members(self):
         self.parents = [self.mother, self.father]
