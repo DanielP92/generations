@@ -182,14 +182,11 @@ class Simulation:
 		print('\n')
 
 	def get_original_sims(self):
-		originals = []
-		for family in self.families:
-			if len(family.u_id) == 36:
-				originals.append(family.sim)
+		originals = [sim for sim in self.all_sims if not isinstance(sim, Offspring)]
 
 		for original in originals:
 			family_list = []
-			
+
 			for sim in self.all_sims:
 				if original.family.u_id in sim.family.u_id:
 					family_list.append(sim)
