@@ -3,7 +3,7 @@ import time
 from sims import Sim, Offspring
 from globals import *
 
-max_sims = 200
+max_sims = 1000
 
 class Simulation:
 	day = 1
@@ -36,6 +36,7 @@ class Simulation:
 				print(f'{no_of_offspring} children out of {len(self.alive_sims)} sims')
 				for family in self.families:
 					print(family.u_id)
+				self.get_original_sims()
 				self.running = False
 
 			for sim in self.alive_sims:
@@ -54,7 +55,7 @@ class Simulation:
 	def add_family_to_list(self, family):
 		self.families.append(family)
 		self.families = (list(dict.fromkeys([x for x in self.families])))
-		self.families.sort(key=lambda family: (str(family.mother.family.u_id), str(family.mother.family.u_id)))
+		self.families.sort(key=lambda family: (str(family.mother.family.u_id), str(family.father.family.u_id)))
 
 	def aging(self, sim):
 		sim.info['age'][1]['days_to_age_up'] -= 1
@@ -164,7 +165,7 @@ class Simulation:
 				self.aging(sim)
 				self.print_data(sim)
 
-		time.sleep(0.2)
+		#time.sleep(0.2)
 
 	def print_data(self, sim):
 		print(f'name: {str(sim)}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]}')
@@ -176,9 +177,25 @@ class Simulation:
 		print('aunts:', [str(x) for x in sim.family.aunts])
 		print('uncles:', [str(x) for x in sim.family.uncles])
 		print('cousins:', [str(x) for x in sim.family.cousins])
-		print('children:', [str(s) for s in sim.family.offspring])
+		print('children:', [str(x) for x in sim.family.offspring])
 		print(sim.family.u_id)
 		print('\n')
+
+	def get_original_sims(self):
+		originals = []
+		for family in self.families:
+			if len(family.u_id) == 36:
+				originals.append(family.sim)
+
+		for original in originals:
+			family_list = []
+			
+			for sim in self.all_sims:
+				if original.family.u_id in sim.family.u_id:
+					family_list.append(sim)
+					family_list.sort(key=lambda sim: len(sim.family.u_id))
+
+			print([str(x) for x in family_list])
 
 
 s = Simulation()
