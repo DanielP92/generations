@@ -1,9 +1,9 @@
 import random
 import time
-from sims import Sim, Offspring
+from sims import Sim, Offspring, Household
 from globals import *
 
-max_sims = 500
+max_sims = 1500
 
 class Simulation:
 	day = 1
@@ -15,6 +15,7 @@ class Simulation:
 		self.all_sims = []
 		self.alive_sims = []
 		self.families = []
+		self.households = []
 		self.running = True
 
 	def spawn_sim(self):
@@ -29,7 +30,10 @@ class Simulation:
 		print(f'{no_of_offspring} children out of {len(self.alive_sims)} sims')
 				
 		self.get_original_sims()
+		for household in self.households:
+			print([str(x) for x in household.members], household.u_id)
 		self.running = False
+
 
 	def main_loop(self):
 		spawn_pc = 0.05
@@ -45,7 +49,17 @@ class Simulation:
 				self.stop_simulation()
 			
 			for sim in self.alive_sims:
+				self.set_households(sim)
 				sim.update()
+
+	def set_households(self, sim):
+		if sim.household not in self.households:
+			self.households.append(sim.household)
+			self.households.sort(key=lambda x: x.u_id)
+			
+		for household in self.households:
+			if len(household.members) == 0:
+				self.households.remove(household)
 
 	def add_to_lists(self, sim, family):
 		self.add_sim_to_list(sim)
@@ -70,6 +84,7 @@ class Simulation:
 
 			if sim.info['age'][0] > 6:
 				self.alive_sims.remove(sim)
+				sim.household.members.remove(sim)
 				print(f'{sim.first_name} {sim.surname} died!')
 			else:
 				sim.add_to_info('age', sim.age_up())
@@ -170,7 +185,7 @@ class Simulation:
 				self.aging(sim)
 				self.print_data(sim)
 
-		time.sleep(0.1)
+		#time.sleep(0.1)
 
 	def print_data(self, sim):
 		print(f'name: {str(sim)}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]}')
@@ -183,6 +198,7 @@ class Simulation:
 		print('uncles:', [str(x) for x in sim.family.uncles])
 		print('cousins:', [str(x) for x in sim.family.cousins])
 		print('children:', [str(x) for x in sim.family.offspring])
+		print([str(x) for x in sim.household.members])
 		print(f'{len(self.alive_sims)} sims alive.')
 
 	def get_original_sims(self):

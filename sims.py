@@ -25,6 +25,7 @@ class Sim:
         self.preg_step, self.preg_day = 0, 1
         self.partner = None
         self.family = Family(self)
+        self.household = None
 
     def __str__(self):
         return f'{self.first_name} {self.surname}'
@@ -44,8 +45,16 @@ class Sim:
         self.set_basic_info()
         self.family.set_other_members()
         self.family.gen = self.family.mother.family.gen + 1
+        self.set_household(self)
         print(f'{self} spawned! {self.info["age"]}, {self.info["gender"]}, {self.info["preference"]}')
-
+    
+    def set_household(self, sim):
+        sim.household = Household()
+        sim.household.add_member(sim)
+        if isinstance(sim, Offspring):
+            sim.family.mother.household.add_member(self)
+            sim.household = sim.family.mother.household
+    
     def relationship_change(self):
         for sim in self.info['eligable_partners']:
             new_val = self.info['eligable_partners'][sim] + random.randint(-2, 15)
@@ -91,6 +100,12 @@ class Sim:
                 if rel1 >= threshold and rel2 >= threshold and self.partner == None and sim.partner == None:
                     sim.partner = self
                     self.partner = sim
+                    self.household.members.remove(self)
+                    sim.household.members.remove(sim)
+                    self.household = sim.household = Household()
+                    self.household.add_member(self)
+                    self.household.add_member(sim)
+
                     set_surnames()
                     print(f'{self.first_name} {self.surname} and {sim.first_name} {sim.surname} are now partners!')
 
@@ -219,3 +234,11 @@ class Family:
         self.uncles = [x for x in [self.mother.family.siblings, self.father.family.siblings] for x in x if x.info['gender'] == 'boy']
         self.update_cousins()
         self.update_2nd_cousins()
+
+class Household:
+    def __init__(self):
+        self.members = []
+        self.u_id = str(uuid.uuid4())
+
+    def add_member(self, sim):
+        self.members.append(sim)
