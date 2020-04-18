@@ -1,6 +1,7 @@
 import random
 import uuid
 from names import AllNames
+from family import Family
 from globals import *
 
 basic_info = ['gender', 'name', 'age', 'is_pregnant', 'preference', 'eligable_partners']
@@ -36,15 +37,18 @@ class Sim:
         if self.step >= DAY_LENGTH:
             self.day += 1
             self.step = 0
-            self.relationship_change()
-            self.family.set_other_members()
-            if self.partner == None:
-                self.set_partner()
+            self.update_relationships()
+
+    def update_relationships(self):
+        self.relationship_change()
+        self.family.set_members()
+        if self.partner == None:
+            self.set_partner()
 
     def generate(self):
         self.set_basic_info()
-        self.family.set_other_members()
-        self.family.gen = self.family.mother.family.gen + 1
+        self.family.set_members()
+        self.family.gen = self.family.immediate.mother.family.gen + 1
         self.set_household(self)
         print(f'{self} spawned! {self.info["age"]}, {self.info["gender"]}, {self.info["preference"]}')
     
@@ -52,8 +56,8 @@ class Sim:
         sim.household = Household()
         sim.household.add_member(sim)
         if isinstance(sim, Offspring):
-            sim.family.mother.household.add_member(self)
-            sim.household = sim.family.mother.household
+            sim.family.immediate.mother.household.add_member(self)
+            sim.household = sim.family.immediate.mother.household
     
     def relationship_change(self):
         for sim in self.info['eligable_partners']:
@@ -92,6 +96,15 @@ class Sim:
             self.info['name'][1] = sim.info['name'][1] = surname
             self.surname = sim.surname = surname
 
+        def set_new_household():
+            self.household.members.remove(self)
+            sim.household.members.remove(sim)
+            self.household = sim.household = Household()
+            self.household.add_member(self)
+            self.household.add_member(sim)
+
+            print(f'{self.first_name} {self.surname} and {sim.first_name} {sim.surname} are now partners!')
+        
         def choose_partner():
             if self in sim.info['eligable_partners']:
                 rel1 = self.info['eligable_partners'][sim]
@@ -100,43 +113,39 @@ class Sim:
                 if rel1 >= threshold and rel2 >= threshold and self.partner == None and sim.partner == None:
                     sim.partner = self
                     self.partner = sim
-                    self.household.members.remove(self)
-                    sim.household.members.remove(sim)
-                    self.household = sim.household = Household()
-                    self.household.add_member(self)
-                    self.household.add_member(sim)
-
                     set_surnames()
-                    print(f'{self.first_name} {self.surname} and {sim.first_name} {sim.surname} are now partners!')
+                    set_new_household()
 
         for sim in self.info['eligable_partners']:
             choose_partner()
 
     def set_name(self):
-        return [random.choice(n.first_names[self.info['gender']]), self.family.mother.info['name'][1]]
+        return [random.choice(n.first_names[self.info['gender']]), self.family.immediate.mother.info['name'][1]]
 
     def set_parents(self):
-        mum, dad = self.family.mother, self.family.father
+        mum, dad = self.family.immediate.mother, self.family.immediate.father
         mum, dad = Sim(), Sim()
-        mum.family.mother, mum.family.father = Sim(), Sim()
-        dad.family.mother, dad.family.father = Sim(), Sim()
-        females = [mum, mum.family.mother, dad.family.mother]
-        males = [dad, dad.family.father, mum.family.father]
+        mum.family.immediate.mother, mum.family.immediate.father = Sim(), Sim()
+        dad.family.immediate.mother, dad.family.immediate.father = Sim(), Sim()
+        females = [mum, mum.family.immediate.mother, dad.family.immediate.mother]
+        males = [dad, dad.family.immediate.father, mum.family.immediate.father]
 
-        for sim in females:
-            sim.family.u_id = self.family.u_id
-            sim.info.update({'gender': genders[1]})
-            sim.info.update({'name': [random.choice(n.first_names[mum.info['gender']]), random.choice(n.surnames)]})
-            sim.first_name, sim.surname = sim.info['name'][0], sim.info['name'][1]
-        for sim in males:
-            sim.family.u_id = self.family.u_id
-            sim.info.update({'gender': genders[0]})
-            sim.info.update({'name': [random.choice(n.first_names[dad.info['gender']]), mum.info['name'][1]]})
-            sim.first_name, sim.surname = sim.info['name'][0], sim.info['name'][1]
+        def parent_iterator():
+            for sim in females:
+                sim.family.u_id = self.family.u_id
+                sim.info.update({'gender': genders[1]})
+                sim.info.update({'name': [random.choice(n.first_names[mum.info['gender']]), random.choice(n.surnames)]})
+                sim.first_name, sim.surname = sim.info['name'][0], sim.info['name'][1]
+            for sim in males:
+                sim.family.u_id = self.family.u_id
+                sim.info.update({'gender': genders[0]})
+                sim.info.update({'name': [random.choice(n.first_names[dad.info['gender']]), mum.info['name'][1]]})
+                sim.first_name, sim.surname = sim.info['name'][0], sim.info['name'][1]
         
-        self.family.mother, self.family.father = mum, dad
-        mum.family.mother, mum.family.father = mum.family.mother, mum.family.father
-        dad.family.mother, dad.family.father = dad.family.mother, dad.family.father
+        parent_iterator()
+        self.family.immediate.mother, self.family.immediate.father = mum, dad
+        mum.family.immediate.mother, mum.family.immediate.father = mum.family.immediate.mother, mum.family.immediate.father
+        dad.family.immediate.mother, dad.family.immediate.father = dad.family.immediate.mother, dad.family.immediate.father
 
 
     def set_gender(self):
@@ -177,63 +186,16 @@ class Sim:
 class Offspring(Sim):
     def __init__(self, mother, father):
         super().__init__()
-        self.family.mother, self.family.father = mother, father
-        self.family.u_id = str(self.family.mother.family.u_id) + str(self.family.father.family.u_id)
+        self.family.immediate.mother, self.family.immediate.father = mother, father
+        self.family.u_id = str(self.family.immediate.mother.family.u_id) + str(self.family.immediate.father.family.u_id)
 
     def set_age(self):
         first_age = list(self.ages.keys())[0]
         return [first_age, {key: value for key, value in self.ages[first_age].items()}]
 
     def set_name(self):
-        return [random.choice(n.first_names[self.info['gender']]), self.family.mother.surname]
+        return [random.choice(n.first_names[self.info['gender']]), self.family.immediate.mother.surname]
 
-class Family:
-    def __init__(self, sim):
-        self.sim = sim
-
-        self.grandparents = []
-        self.mother = None
-        self.father = None
-        self.siblings = []
-        self.aunts = []
-        self.uncles = []
-        self.cousins = []
-        self.second_cousins = []
-        self.offspring = []
-
-        self.u_id = str(uuid.uuid4())
-        self.gen = 0
-
-    def update_siblings(self):
-        self.siblings = (list(dict.fromkeys([x for x in self.mother.family.offspring + self.father.family.offspring if x != self.sim])))
-
-    def update_iterator(self, list_1, list_2):
-        for sim_info in list_1:
-            for sim in sim_info:
-                if sim not in list_2:
-                    list_2.append(sim)
-                    list_2.sort(key=lambda x: x.surname)
-
-    def update_cousins(self):
-        offspring_list = [x.family.offspring for x in [self.aunts, self.uncles] for x in x if len(x.family.offspring) != 0]            
-        self.update_iterator(offspring_list, self.cousins)
-   
-    def update_2nd_cousins(self):
-        offspring_list = [x.family.offspring for x in [self.mother.family.cousins, self.father.family.cousins] for x in x if len(x.family.offspring) != 0]            
-        self.update_iterator(offspring_list, self.second_cousins)
-
-    def update_grandparents(self):
-        grandparent_list = [[x.family.mother, x.family.father] for x in self.parents]
-        self.update_iterator(grandparent_list, self.grandparents)
-
-    def set_other_members(self):
-        self.parents = [self.mother, self.father]
-        self.update_grandparents()
-        self.update_siblings()
-        self.aunts = [x for x in [self.mother.family.siblings, self.father.family.siblings] for x in x if x.info['gender'] == 'girl']
-        self.uncles = [x for x in [self.mother.family.siblings, self.father.family.siblings] for x in x if x.info['gender'] == 'boy']
-        self.update_cousins()
-        self.update_2nd_cousins()
 
 class Household:
     def __init__(self):

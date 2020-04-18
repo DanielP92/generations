@@ -74,7 +74,7 @@ class Simulation:
 	def add_family_to_list(self, family):
 		self.families.append(family)
 		self.families = (list(dict.fromkeys([x for x in self.families])))
-		self.families.sort(key=lambda family: (str(family.mother.family.u_id), str(family.father.family.u_id)))
+		self.families.sort(key=lambda family: (str(family.immediate.mother.family.u_id), str(family.immediate.father.family.u_id)))
 
 	def aging(self, sim):
 		sim.info['age'][1]['days_to_age_up'] -= 1
@@ -97,14 +97,14 @@ class Simulation:
 			current_sim_age = current_sim.info['age'][1]['group']
 			current_sim_gender = current_sim.info['gender']
 			current_sim_pref = current_sim.info['preference']
-			current_sim_uid = current_sim.family.grandparents[0].family.u_id
+			current_sim_uid = current_sim.family.immediate.grandparents[0].family.u_id
 
 			for sim in single_sims:
 				sim_single = sim.partner is None
 				sim_gender = sim.info['gender']
 				sim_pref = sim.info['preference']
 				sim_age = sim.info['age'][1]['group']
-				sim_uid = sim.family.grandparents[0].family.u_id
+				sim_uid = sim.family.immediate.grandparents[0].family.u_id
 
 				age_check = current_sim_age == sim_age
 				gender_check = current_sim_gender in sim_pref and sim_gender in current_sim_pref
@@ -124,20 +124,20 @@ class Simulation:
 		child.generate()
 		self.add_to_lists(child, child.family)
 
-		sim.family.offspring.append(child)
-		sim.partner.family.offspring.append(child)
+		sim.family.immediate.offspring.append(child)
+		sim.partner.family.immediate.offspring.append(child)
 		sim.preg_step, sim.preg_day = 0, 1
 		sim.info['is_pregnant'] = False
 
-		for offspring in sim.family.offspring:
-			offspring.family.update_siblings()
+		for offspring in sim.family.immediate.offspring:
+			offspring.family.immediate.update_siblings()
 		
 		print(f'{str(sim)} gave birth to {str(child)}!')
 
 		#time.sleep(2)
 
 	def pregnancy(self):
-		spawn_pc = 0.005
+		spawn_pc = 0.0075
 
 		def pregnancy_timer(sim):
 			sim.preg_step += 1
@@ -152,7 +152,7 @@ class Simulation:
 		for sim in self.alive_sims:
 			chance = random.random() < spawn_pc
 			female = sim.info['gender'] == 'girl'
-			old_enough = sim.info['age'][0] >= 4
+			old_enough = 3 <= sim.info['age'][0] <= 5
 			pregnant = sim.info['is_pregnant']
 			partnered = sim.partner
 			spawn_day = self.day_name in ["Monday", "Wednesday", "Friday"]
@@ -191,13 +191,13 @@ class Simulation:
 		print(f'name: {str(sim)}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]}')
 		print(f'relationships: {[str(x) for x in sim.info["eligable_partners"]]}')
 		print(str(sim.partner))
-		print('grandparents:', [str(x) for x in [x for x in sim.family.grandparents]])
-		print('parents:', [str(x)  for x in sim.family.parents])
-		print('siblings:', [str(x)  for x in sim.family.siblings])
-		print('aunts:', [str(x) for x in sim.family.aunts])
-		print('uncles:', [str(x) for x in sim.family.uncles])
-		print('cousins:', [str(x) for x in sim.family.cousins])
-		print('children:', [str(x) for x in sim.family.offspring])
+		print('grandparents:', [str(x) for x in [x for x in sim.family.immediate.grandparents]])
+		print('parents:', [str(x)  for x in sim.family.immediate.parents])
+		print('siblings:', [str(x)  for x in sim.family.immediate.siblings])
+		print('aunts:', [str(x) for x in sim.family.extended.aunts])
+		print('uncles:', [str(x) for x in sim.family.extended.uncles])
+		print('cousins:', [str(x) for x in sim.family.extended.cousins])
+		print('children:', [str(x) for x in sim.family.immediate.offspring])
 		print([str(x) for x in sim.household.members])
 		print(f'{len(self.alive_sims)} sims alive.')
 
@@ -209,7 +209,7 @@ class Simulation:
 
 			for sim in self.all_sims:
 				if original.family.u_id in sim.family.u_id:
-					family_list.append([sim, [sim.family.mother.family.gen, sim.family.father.family.gen], sim.family.gen])
+					family_list.append([sim, [sim.family.immediate.mother.family.gen, sim.family.immediate.father.family.gen], sim.family.gen])
 					family_list.sort(key=lambda x: x[2])
 
 			print([[str(x[0]), x[1], x[2]] for x in family_list])
