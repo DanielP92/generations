@@ -1,6 +1,6 @@
 import random
 import time
-from sims import Sim, Offspring, Household
+from sims import Sim, Offspring
 from globals import *
 
 max_sims = 1500
@@ -31,7 +31,7 @@ class Simulation:
 				
 		self.get_original_sims()
 		for household in self.households:
-			print([str(x) for x in household.members], household.u_id)
+			print([[str(x), x.info['age'][1]['group']] for x in household.members], household.u_id)
 		self.running = False
 
 
@@ -56,7 +56,7 @@ class Simulation:
 		if sim.household not in self.households:
 			self.households.append(sim.household)
 			self.households.sort(key=lambda x: x.u_id)
-			
+
 		for household in self.households:
 			if len(household.members) == 0:
 				self.households.remove(household)
