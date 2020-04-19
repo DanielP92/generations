@@ -66,12 +66,12 @@ class Family(BaseFamily):
         super().__init__(sim)
         self.immediate = ImmediateFamily(self.sim)
         self.extended = ExtendedFamily(self.sim)
+        self.functions = [self.immediate.update_parents, self.immediate.update_grandparents,
+                          self.immediate.update_siblings, self.extended.update_aunts_uncles,
+                          self.extended.update_cousins, self.extended.update_second_cousins,
+                         ]
         self.u_id = str(uuid.uuid4())
-   
+    
     def set_members(self):
-        self.immediate.update_parents()
-        self.immediate.update_grandparents()
-        self.immediate.update_siblings()
-        self.extended.update_aunts_uncles()
-        self.extended.update_cousins()
-        self.extended.update_second_cousins()
+        for func in self.functions:
+            func()

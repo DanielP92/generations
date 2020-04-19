@@ -3,7 +3,7 @@ import time
 from sims import Sim, Offspring
 from globals import *
 
-max_sims = 1500
+max_sims = 150
 
 class Simulation:
 	day = 1
@@ -33,7 +33,6 @@ class Simulation:
 		for household in self.households:
 			print([[str(x), x.info['age'][1]['group']] for x in household.members], household.u_id)
 		self.running = False
-
 
 	def main_loop(self):
 		spawn_pc = 0.05
@@ -150,14 +149,14 @@ class Simulation:
 				self.give_birth(sim)
 
 		for sim in self.alive_sims:
-			chance = random.random() < spawn_pc
+			spawn_day = self.day_name in ["Monday", "Wednesday", "Friday"]
+			spawn_chance = random.random() < spawn_pc and sim.partner and spawn_day
+			pregnant = sim.info['is_pregnant']
+			hit = spawn_chance and not pregnant
 			female = sim.info['gender'] == 'girl'
 			old_enough = 3 <= sim.info['age'][0] <= 5
-			pregnant = sim.info['is_pregnant']
-			partnered = sim.partner
-			spawn_day = self.day_name in ["Monday", "Wednesday", "Friday"]
 
-			if spawn_day and female and old_enough and chance and partnered and not pregnant:
+			if female and old_enough and hit:
 				sim.info['is_pregnant'] = True
 				print(str(sim) + ' is pregnant!')
 
