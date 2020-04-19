@@ -199,6 +199,7 @@ class Simulation:
 		print('children:', [str(x) for x in sim.family.immediate.offspring])
 		print([str(x) for x in sim.household.members])
 		print(f'{len(self.alive_sims)} sims alive.')
+		print('\n')
 
 	def get_original_sims(self):
 		originals = [sim for sim in self.all_sims if not isinstance(sim, Offspring)]

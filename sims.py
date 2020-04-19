@@ -67,10 +67,9 @@ class Sim:
             self.info['eligable_partners'].update({sim: new_val})
 
     def set_basic_info(self):
-        for func in self.properties:
-            for item in basic_info:
-                if str(item) in str(func):
-                    self.add_to_info(item, func())
+        for func, item in zip(self.properties, basic_info):
+            if str(item) in str(func):
+                self.add_to_info(item, func())
 
         self.first_name, self.surname = self.info['name'][0], self.info['name'][1]
 
