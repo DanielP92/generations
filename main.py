@@ -1,6 +1,6 @@
 import random
 import time
-from sims import Sim, Offspring
+from sims import SpawnedSim, Offspring
 from globals import *
 
 max_sims = 150
@@ -19,8 +19,7 @@ class Simulation:
 		self.running = True
 
 	def spawn_sim(self):
-		sim = Sim()
-		sim.set_parents()
+		sim = SpawnedSim()
 		sim.generate()
 		self.add_to_lists(sim, sim.family)
 		self.find_partners()
@@ -197,6 +196,7 @@ class Simulation:
 		print('uncles:', [str(x) for x in sim.family.extended.uncles])
 		print('cousins:', [str(x) for x in sim.family.extended.cousins])
 		print('children:', [str(x) for x in sim.family.immediate.offspring])
+		print('2nd cousins:', [str(x) for x in sim.family.extended.second_cousins])
 		print([str(x) for x in sim.household.members])
 		print(f'{len(self.alive_sims)} sims alive.')
 		print('\n')

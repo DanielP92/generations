@@ -57,7 +57,9 @@ class ExtendedFamily(BaseFamily):
         self.update_iterator(offspring_list, self.cousins)
         
     def update_second_cousins(self):
-        offspring_list = [x.family.immediate.offspring for x in [self.aunts, self.uncles] for x in x if len(x.family.immediate.offspring) != 0]
+        mum_cousins = self.sim.family.immediate.mother.family.extended.cousins
+        dad_cousins = self.sim.family.immediate.father.family.extended.cousins
+        offspring_list = [x.family.immediate.offspring for x in [mum_cousins, dad_cousins] for x in x if len(x.family.immediate.offspring) != 0]
         self.update_iterator(offspring_list, self.second_cousins)
 
 
