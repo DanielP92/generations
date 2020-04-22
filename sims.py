@@ -6,7 +6,7 @@ from relationships import Relationships
 from ageing import Ageing
 from globals import *
 
-basic_info = ['gender', 'name', 'age', 'is_pregnant', 'preference', 'eligable_partners']
+basic_info = ['gender', 'name', 'age', 'is_pregnant', 'preference']
 
 n = AllNames()
 
@@ -21,7 +21,7 @@ class BaseSim:
         self.relationships = Relationships(self)
 
         self.properties = [self.set_gender, self.set_name, self.set_age,
-                           self.ageing.pregnancy.is_pregnant, self.relationships.set_preference, self.set_eligable_partners]
+                           self.ageing.pregnancy.is_pregnant, self.relationships.set_preference]
 
     def __str__(self):
         return f'{self.first_name} {self.surname}'
@@ -59,9 +59,6 @@ class BaseSim:
 
     def set_age(self):
         return list(random.choice(list(self.ageing.ages.items())[3:6]))
-    
-    def set_eligable_partners(self):
-        return dict()
 
     def give_birth(self):
         child = Offspring(self, self.relationships.romantic.partner)

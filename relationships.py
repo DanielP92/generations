@@ -16,6 +16,7 @@ class Romantic:
     def __init__(self, sim):
         self.sim = sim
         self.partner = None
+        self.potential_partners = dict()
         self.chemistry_value = random.choice(range(10))
 
     def find_partners(self, sim_list):
@@ -32,19 +33,19 @@ class Romantic:
                 sim_pref = sim.info['preference']
                 sim_age = sim.info['age'][1]['group']
                 sim_uid = sim.family.immediate.grandparents[0].family.u_id
-
+                chemistry = current_sim.relationships.set_chemistry_value(sim)
                 age_check = current_sim_age == sim_age
                 gender_check = current_sim_gender in sim_pref and sim_gender in current_sim_pref
                 family_check = current_sim_uid not in sim_uid and sim_uid not in current_sim_uid
 
-                if sim_single and age_check and gender_check and family_check:
-                    if sim in current_sim.info['eligable_partners']:
+                if sim_single and age_check and gender_check and family_check and chemistry >= 1.1:
+                    if sim in current_sim.relationships.romantic.potential_partners:
                         pass
                     else:
-                        current_sim.info['eligable_partners'].update({sim: int()})
+                        current_sim.relationships.romantic.potential_partners.update({sim: int()})
 
-                if current_sim in current_sim.info['eligable_partners']:
-                    del current_sim.info['eligable_partners'][sim]
+                if current_sim in current_sim.relationships.romantic.potential_partners:
+                    del current_sim.relationships.romantic.potential_partners[current_sim]
 
     def set_partner(self):
         threshold = 65
@@ -78,10 +79,9 @@ class Romantic:
             print(f'{str(self.sim)} and {str(partner)} are now partners!')
         
         def choose_partner():
-            if self.sim in partner.info['eligable_partners']:
-                rel1 = self.sim.info['eligable_partners'][partner]
-                rel2 = partner.info['eligable_partners'][self.sim]
-                chemistry = self.sim.relationships.set_chemistry_value(partner)
+            if self.sim in partner.relationships.romantic.potential_partners:
+                rel1 = self.sim.relationships.romantic.potential_partners[partner]
+                rel2 = partner.relationships.romantic.potential_partners[self.sim]
 
                 if rel1 >= threshold and rel2 >= threshold and self.partner == None and partner.relationships.romantic.partner == None:
                     partner.relationships.romantic.partner = self.sim
@@ -89,7 +89,7 @@ class Romantic:
                     set_surnames()
                     set_new_household()
 
-        for partner in self.sim.info['eligable_partners']:
+        for partner in self.potential_partners:
             choose_partner()
 
 
@@ -156,11 +156,11 @@ class Relationships:
             return 1
 
     def relationship_change(self):
-        for x in self.sim.info['eligable_partners']:
+        for x in self.romantic.potential_partners:
             add_distance = self.set_distance_value(x)
             add_chemistry = self.set_chemistry_value(x)
-            new_val = self.sim.info['eligable_partners'][x] + ((random.randint(-2, 3) + add_distance) * add_chemistry)
+            new_val = self.romantic.potential_partners[x] + ((random.randint(-2, 4) + add_distance) * add_chemistry)
             if new_val > 100:
                 new_val = 100
-            self.sim.info['eligable_partners'].update({x: new_val})
-            print(str(x), add_distance, add_chemistry, new_val)
+            self.romantic.potential_partners.update({x: new_val})
+            print([[str(x), value, add_chemistry] for x, value in self.romantic.potential_partners.items()])

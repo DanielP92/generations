@@ -34,12 +34,12 @@ class Simulation:
 	def update_sims(self):
 		for sim in self.alive_sims:
 			sim.update()
-			self.print_data(sim)
 			
 	def check_lists(self, sim):
 		self.find_all_households(sim)
 		self.check_offspring(sim)
 		self.check_dead_sims(sim)
+		self.print_data(sim)
 
 	def igt(self):
 		self.step += 1
@@ -115,8 +115,8 @@ class Simulation:
 
 	def print_data(self, sim):
 		print(f'name: {str(sim)}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]}')
-		print(f'relationships: {[str(x) for x in sim.info["eligable_partners"]]}')
 		print(str(sim.relationships.romantic.partner))
+		print('relationships:', [str(x) for x in sim.relationships.romantic.potential_partners])
 		print('grandparents:', [str(x) for x in [x for x in sim.family.immediate.grandparents]])
 		print('parents:', [str(x)  for x in sim.family.immediate.parents])
 		print('siblings:', [str(x)  for x in sim.family.immediate.siblings])
