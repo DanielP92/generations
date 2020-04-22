@@ -3,3 +3,5 @@ DAYS = {1: 'Monday', 2: 'Tuesday', 3: 'Wednesday',
         7: 'Sunday'}
 
 DAY_LENGTH = 16
+
+GENDERS = ('boy', 'girl')
