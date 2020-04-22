@@ -7,6 +7,7 @@ class Household:
     def __init__(self):
         self.members = []
         self.u_id = str(uuid.uuid4())
+        self.location = random.uniform(0, 3)
 
     def add_member(self, sim):
         self.members.append(sim)
@@ -15,6 +16,7 @@ class Romantic:
     def __init__(self, sim):
         self.sim = sim
         self.partner = None
+        self.chemistry_value = random.choice(range(10))
 
     def find_partners(self, sim_list):
         for sim in sim_list:
@@ -73,12 +75,13 @@ class Romantic:
             self.sim.relationships.household.add_member(self.sim)
             self.sim.relationships.household.add_member(partner)
 
-            print(f'{self.sim.first_name} {self.sim.surname} and {partner.first_name} {partner.surname} are now partners!')
+            print(f'{str(self.sim)} and {str(partner)} are now partners!')
         
         def choose_partner():
             if self.sim in partner.info['eligable_partners']:
                 rel1 = self.sim.info['eligable_partners'][partner]
                 rel2 = partner.info['eligable_partners'][self.sim]
+                chemistry = self.sim.relationships.set_chemistry_value(partner)
 
                 if rel1 >= threshold and rel2 >= threshold and self.partner == None and partner.relationships.romantic.partner == None:
                     partner.relationships.romantic.partner = self.sim
@@ -124,9 +127,40 @@ class Relationships:
         self.sim.family.immediate.mother.relationships.household.add_member(self.sim)
         self.household = sim.family.immediate.mother.relationships.household
 
+    def set_distance_value(self, x):
+        distances = [self.sim.relationships.household.location, x.relationships.household.location]
+        total_distance = max(distances) - min(distances)
+            
+        if total_distance < 0.1:
+            return 4
+        elif 0.1 <= total_distance <= 0.25:
+            return 3
+        elif 0.25 <= total_distance <= 0.5:
+            return 2
+        elif 0.5 <= total_distance <= 1:
+            return 1
+        else:
+            return 0
+
+    def set_chemistry_value(self, x):
+        chemistries = [self.sim.relationships.romantic.chemistry_value, x.relationships.romantic.chemistry_value]
+        difference = max(chemistries) - min(chemistries)
+
+        if difference == 0:
+            return 1.75
+        elif difference == 1:
+            return 1.33
+        elif difference == 2:
+            return 1.1
+        else:
+            return 1
+
     def relationship_change(self):
         for x in self.sim.info['eligable_partners']:
-            new_val = self.sim.info['eligable_partners'][x] + random.randint(-2, 15)
+            add_distance = self.set_distance_value(x)
+            add_chemistry = self.set_chemistry_value(x)
+            new_val = self.sim.info['eligable_partners'][x] + ((random.randint(-2, 3) + add_distance) * add_chemistry)
             if new_val > 100:
                 new_val = 100
             self.sim.info['eligable_partners'].update({x: new_val})
+            print(str(x), add_distance, add_chemistry, new_val)
