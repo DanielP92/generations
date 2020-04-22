@@ -33,6 +33,7 @@ class BaseSim:
         if self.step >= DAY_LENGTH:
             self.day += 1
             self.step = 0
+            self.ageing.update()
             self.relationships.update()
 
     def set_basic_info(self):
@@ -57,7 +58,7 @@ class BaseSim:
         return [random.choice(n.first_names[self.info['gender']]), self.family.immediate.mother.info['name'][1]]
 
     def set_age(self):
-        return list(random.choice(list(self.ageing.ages.items())[2:5]))
+        return list(random.choice(list(self.ageing.ages.items())[3:6]))
     
     def set_eligable_partners(self):
         return dict()

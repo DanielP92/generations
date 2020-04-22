@@ -5,11 +5,12 @@ class Ageing:
     def __init__(self, sim):
         self.sim = sim
         self.ages = {1: {'group': 'baby', 'days_to_age_up': 7},
-                     2: {'group': 'child', 'days_to_age_up': 14},
-                     3: {'group': 'teen', 'days_to_age_up': 21},
-                     4: {'group': 'yng_adult', 'days_to_age_up': 21},
-                     5: {'group': 'adult', 'days_to_age_up': 60},
-                     6: {'group': 'elder', 'days_to_age_up': 28},
+                     2: {'group': 'toddler', 'days_to_age_up': 7},
+                     3: {'group': 'child', 'days_to_age_up': 14},
+                     4: {'group': 'teen', 'days_to_age_up': 21},
+                     5: {'group': 'yng_adult', 'days_to_age_up': 21},
+                     6: {'group': 'adult', 'days_to_age_up': 60},
+                     7: {'group': 'elder', 'days_to_age_up': 28},
                     }
         self.pregnancy = Pregnancy(self.sim)
 
@@ -22,7 +23,7 @@ class Ageing:
         if self.sim.info['age'][1]['days_to_age_up'] < 0:
             self.sim.info['age'][0] += 1
 
-            if self.sim.info['age'][0] > 6:
+            if self.sim.info['age'][0] > 7:
                 self.sim.alive = False
                 self.sim.relationships.household.members.remove(self.sim)
                 print(f'{self.sim.first_name} {self.sim.surname} died!')
@@ -60,7 +61,7 @@ class Pregnancy:
         pregnant = self.sim.info['is_pregnant']
         hit = spawn_chance and not pregnant
         female = self.sim.info['gender'] == 'girl'
-        old_enough = 3 <= self.sim.info['age'][0] <= 5
+        old_enough = 4 <= self.sim.info['age'][0] <= 6
 
         if female and old_enough and hit:
             self.sim.info['is_pregnant'] = True
