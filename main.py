@@ -33,11 +33,13 @@ class Simulation:
 
 	def update_sims(self):
 		for sim in self.alive_sims:
-			self.find_all_households(sim)
-			self.check_offspring(sim)
-			self.check_dead_sims(sim)
-			self.print_data(sim)
 			sim.update()
+			self.print_data(sim)
+			
+	def check_lists(self, sim):
+		self.find_all_households(sim)
+		self.check_offspring(sim)
+		self.check_dead_sims(sim)
 
 	def igt(self):
 		self.step += 1
@@ -52,7 +54,12 @@ class Simulation:
 				self.day_name_step = 1
 
 			self.day_name = DAYS[self.day_name_step]
+			
+			for sim in self.alive_sims:
+				self.check_lists(sim)
+
 			self.find_all_partners()
+
 			print(self.day_name)
 
 	def main_loop(self):
