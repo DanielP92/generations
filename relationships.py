@@ -32,7 +32,7 @@ class Romantic:
             sim_pref = sim.info['preference']
             sim_age = sim.info['age'][0]
             sim_uid = sim.family.immediate.grandparents[0].family.u_id
-            chemistry = self.sim.relationships.set_chemistry_value(sim)
+            chemistry = self.sim.relationships.romantic.set_chemistry_value(sim)
 
             single_check = single == sim_single
             age_check = age == sim_age and sim_age >= 4
@@ -46,8 +46,11 @@ class Romantic:
                 else:
                     self.sim.relationships.romantic.potential_partners.update({sim: int()})
 
-            if self.sim in self.sim.relationships.romantic.potential_partners:
+            partners = self.sim.relationships.romantic.potential_partners
+
+            if self.sim in partners:
                 del self.sim.relationships.romantic.potential_partners[self.sim]
+
 
     def set_partner(self):
         threshold = 65
@@ -97,6 +100,22 @@ class Romantic:
         for partner in self.potential_partners:
             choose_partner()
 
+    def chemistry_between(self, x):    
+        chemistries = [self.chemistry_value, x.relationships.romantic.chemistry_value]
+        return max(chemistries) - min(chemistries)
+
+    def set_chemistry_value(self, x):
+        difference = self.chemistry_between(x)
+        
+        if difference == 0:
+            return 2.75
+        elif difference == 1:
+            return 2
+        elif difference == 2:
+            return 1.5
+        else:
+            return 1
+
 
 class Friendly:
     def __init__(self, sim):
@@ -123,16 +142,22 @@ class Relationships:
 
     def find_new_sims(self, sim_list):
         for sim in sim_list:
-            distances = [self.sim.relationships.household.location, sim.relationships.household.location]
-            total_distance = max(distances) - min(distances)
+            total_distance = self.distance_between(sim)
 
             if total_distance <= self.step and total_distance <= sim.relationships.step:
                 self.meet_sim(sim)
 
     def meet_sim(self, sim):
-        if sim not in self.sims_met and sim != self.sim:
+        sim_met = False
+
+        def meet_chance():
+            return random.random() < 0.05
+
+        if sim not in self.sims_met and sim != self.sim and meet_chance():
             self.sims_met.update({sim: int()})
-            print(f'{str(self.sim)} and {str(sim)} have met!')
+
+        elif len(self.sims_met) >= 100:
+            pass
 
     def set_preference(self):
         homo_pc = 0.1
@@ -155,10 +180,13 @@ class Relationships:
         self.sim.family.immediate.mother.relationships.household.add_member(self.sim)
         self.household = sim.family.immediate.mother.relationships.household
 
-    def set_distance_value(self, x):
+    def distance_between(self, x):
         distances = [self.sim.relationships.household.location, x.relationships.household.location]
-        total_distance = max(distances) - min(distances)
-            
+        return max(distances) - min(distances)
+      
+    def set_distance_value(self, x):
+        total_distance = self.distance_between(x)
+
         if total_distance < 0.1:
             return 4
         elif 0.1 <= total_distance <= 0.25:
@@ -170,23 +198,10 @@ class Relationships:
         else:
             return 0
 
-    def set_chemistry_value(self, x):
-        chemistries = [self.sim.relationships.romantic.chemistry_value, x.relationships.romantic.chemistry_value]
-        difference = max(chemistries) - min(chemistries)
-
-        if difference == 0:
-            return 1.75
-        elif difference == 1:
-            return 1.33
-        elif difference == 2:
-            return 1.1
-        else:
-            return 1
-
     def relationship_change(self):
         for x in self.romantic.potential_partners:
             add_distance = self.set_distance_value(x)
-            add_chemistry = self.set_chemistry_value(x)
+            add_chemistry = self.romantic.set_chemistry_value(x)
             new_val = self.romantic.potential_partners[x] + ((random.randint(-2, 4) + add_distance) * add_chemistry)
             if new_val > 100:
                 new_val = 100

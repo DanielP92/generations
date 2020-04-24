@@ -41,7 +41,9 @@ class AllNames:
 
     def get_first_names(cls, url):
         names = soup(get(url).content, 'html.parser').ol
-        name_list = [name.text.strip() for name in names]
+        name_list = names.find_all('li')
+        name_list = [li.text.strip() for li in name_list]
+        print(name_list)
         for name in name_list:
             for key in cls.first_names.keys():
                 if str(key) in str(url):
@@ -81,3 +83,5 @@ class AllNames:
                     for name in name_info:
                         text_file.write(name.a.text.capitalize() + '\n')
                     print('names written to file')
+
+AllNames()

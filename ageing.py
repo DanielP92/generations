@@ -57,8 +57,17 @@ class Pregnancy:
         if self.day > 3:
             self.sim.give_birth()
 
+    def set_chance(self):
+        no_of_children = len(self.sim.family.immediate.offspring)
+        if no_of_children < 3:
+            return 0.005
+        elif 3 <= no_of_children <= 5:
+            return 0.0005
+        else:
+            return 0.00005
+
     def pregnancy(self):
-        spawn_pc = 0.005
+        spawn_pc = self.set_chance()
 
         spawn_chance = random.random() < spawn_pc and self.sim.relationships.romantic.partner
         pregnant = self.sim.info['is_pregnant']

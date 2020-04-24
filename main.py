@@ -3,7 +3,7 @@ import time
 from sims import BaseSim, SpawnedSim, Offspring
 from globals import *
 
-max_sims = 1000
+max_sims = 500
 
 class Simulation:
 	day = 1
@@ -61,7 +61,8 @@ class Simulation:
 				self.check_lists(sim)
 
 			print(self.day_name)
-		time.sleep(0.1)
+		#time.sleep(0.1)
+		print(f'{len(self.alive_sims)} sims alive.')
 
 	def main_loop(self):
 		print('simulation started')
@@ -134,7 +135,7 @@ class Simulation:
 			family_list = []
 
 			for sim in self.all_sims:
-				if original.family.u_id in sim.family.u_id:
+				if original.family.u_id in sim.family.immediate.mother.family.u_id:
 					family_list.append([sim, [sim.family.immediate.mother.family.gen, sim.family.immediate.father.family.gen], sim.family.gen])
 					family_list.sort(key=lambda x: x[2])
 
