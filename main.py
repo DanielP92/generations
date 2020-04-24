@@ -61,8 +61,8 @@ class Simulation:
 				self.check_lists(sim)
 
 			print(self.day_name)
+			
 		#time.sleep(0.1)
-		print(f'{len(self.alive_sims)} sims alive.')
 
 	def main_loop(self):
 		print('simulation started')
