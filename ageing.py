@@ -8,7 +8,7 @@ class Ageing:
                      2: {'group': 'toddler', 'days_to_age_up': 7},
                      3: {'group': 'child', 'days_to_age_up': 14},
                      4: {'group': 'teen', 'days_to_age_up': 21},
-                     5: {'group': 'yng_adult', 'days_to_age_up': 21},
+                     5: {'group': 'yng_adult', 'days_to_age_up': 28},
                      6: {'group': 'adult', 'days_to_age_up': 60},
                      7: {'group': 'elder', 'days_to_age_up': 28},
                     }
@@ -25,7 +25,10 @@ class Ageing:
 
             if self.sim.info['age'][0] > 7:
                 self.sim.alive = False
-                self.sim.relationships.household.members.remove(self.sim)
+                try:
+                    self.sim.relationships.household.members.remove(self.sim)
+                except:
+                    pass
                 print(f'{self.sim.first_name} {self.sim.surname} died!')
             else:
                 self.sim.add_to_info('age', self.age_up())
@@ -55,7 +58,7 @@ class Pregnancy:
             self.sim.give_birth()
 
     def pregnancy(self):
-        spawn_pc = 0.0075
+        spawn_pc = 0.005
 
         spawn_chance = random.random() < spawn_pc and self.sim.relationships.romantic.partner
         pregnant = self.sim.info['is_pregnant']

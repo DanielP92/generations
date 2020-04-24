@@ -19,33 +19,35 @@ class Romantic:
         self.potential_partners = dict()
         self.chemistry_value = random.choice(range(10))
 
-    def find_partners(self, sim_list):
-        for sim in sim_list:
-            current_sim = sim
-            current_sim_age = current_sim.info['age'][1]['group']
-            current_sim_gender = current_sim.info['gender']
-            current_sim_pref = current_sim.info['preference']
-            current_sim_uid = current_sim.family.immediate.grandparents[0].family.u_id
+    def find_partners(self):
+        single = self.sim.relationships.romantic.partner is None
+        age = self.sim.info['age'][0]
+        gender = self.sim.info['gender']
+        pref = self.sim.info['preference']
+        uid = self.sim.family.immediate.grandparents[0].family.u_id
 
-            for sim in sim_list:
-                sim_single = sim.relationships.romantic.partner is None
-                sim_gender = sim.info['gender']
-                sim_pref = sim.info['preference']
-                sim_age = sim.info['age'][1]['group']
-                sim_uid = sim.family.immediate.grandparents[0].family.u_id
-                chemistry = current_sim.relationships.set_chemistry_value(sim)
-                age_check = current_sim_age == sim_age
-                gender_check = current_sim_gender in sim_pref and sim_gender in current_sim_pref
-                family_check = current_sim_uid not in sim_uid and sim_uid not in current_sim_uid
+        for sim in self.sim.relationships.sims_met:
+            sim_single = sim.relationships.romantic.partner is None
+            sim_gender = sim.info['gender']
+            sim_pref = sim.info['preference']
+            sim_age = sim.info['age'][0]
+            sim_uid = sim.family.immediate.grandparents[0].family.u_id
+            chemistry = self.sim.relationships.set_chemistry_value(sim)
 
-                if sim_single and age_check and gender_check and family_check and chemistry >= 1.1:
-                    if sim in current_sim.relationships.romantic.potential_partners:
-                        pass
-                    else:
-                        current_sim.relationships.romantic.potential_partners.update({sim: int()})
+            single_check = single == sim_single
+            age_check = age == sim_age and sim_age >= 4
+            gender_check = gender in sim_pref and sim_gender in pref
+            family_check = uid not in sim_uid and sim_uid not in uid
 
-                if current_sim in current_sim.relationships.romantic.potential_partners:
-                    del current_sim.relationships.romantic.potential_partners[current_sim]
+
+            if single_check and age_check and gender_check and family_check and chemistry >= 1.1:
+                if sim in self.sim.relationships.romantic.potential_partners:
+                    pass
+                else:
+                    self.sim.relationships.romantic.potential_partners.update({sim: int()})
+
+            if self.sim in self.sim.relationships.romantic.potential_partners:
+                del self.sim.relationships.romantic.potential_partners[self.sim]
 
     def set_partner(self):
         threshold = 65
@@ -70,8 +72,11 @@ class Romantic:
             self.sim.surname = partner.surname = surname
 
         def set_new_household():
-            self.sim.relationships.household.members.remove(self.sim)
-            self.partner.relationships.household.members.remove(self.partner)
+            try:
+                self.sim.relationships.household.members.remove(self.sim)
+                self.partner.relationships.household.members.remove(self.partner)
+            except:
+                pass
             self.sim.relationships.household = self.partner.relationships.household = Household()
             self.sim.relationships.household.add_member(self.sim)
             self.sim.relationships.household.add_member(partner)
@@ -93,18 +98,41 @@ class Romantic:
             choose_partner()
 
 
-class Relationships:
+class Friendly:
     def __init__(self, sim):
         self.sim = sim
-        self.household = None
+        self.sims_met = dict()
+
+
+class Relationships:
+    step = 0.01
+
+    def __init__(self, sim):
+        self.sim = sim
+        self.sims_met = dict()
+        self.household = Household()
         self.romantic = Romantic(self.sim)
-        self.friendly = None # new class
+        self.friendly = Friendly(self.sim)
 
     def update(self):
+        self.step += random.uniform(0.01, 0.025)
         self.relationship_change()
         self.sim.family.set_members()
         if self.romantic.partner == None:
             self.romantic.set_partner()
+
+    def find_new_sims(self, sim_list):
+        for sim in sim_list:
+            distances = [self.sim.relationships.household.location, sim.relationships.household.location]
+            total_distance = max(distances) - min(distances)
+
+            if total_distance <= self.step and total_distance <= sim.relationships.step:
+                self.meet_sim(sim)
+
+    def meet_sim(self, sim):
+        if sim not in self.sims_met and sim != self.sim:
+            self.sims_met.update({sim: int()})
+            print(f'{str(self.sim)} and {str(sim)} have met!')
 
     def set_preference(self):
         homo_pc = 0.1
@@ -163,4 +191,3 @@ class Relationships:
             if new_val > 100:
                 new_val = 100
             self.romantic.potential_partners.update({x: new_val})
-            print([[str(x), value, add_chemistry] for x, value in self.romantic.potential_partners.items()])

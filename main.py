@@ -3,7 +3,7 @@ import time
 from sims import BaseSim, SpawnedSim, Offspring
 from globals import *
 
-max_sims = 250
+max_sims = 1000
 
 class Simulation:
 	day = 1
@@ -19,7 +19,7 @@ class Simulation:
 		self.running = True
 
 	def spawn_sim(self):
-		spawn_pc = 0.05
+		spawn_pc = 0.025
 		if random.random() < spawn_pc:
 			sim = SpawnedSim()
 			sim.generate()
@@ -56,11 +56,12 @@ class Simulation:
 			self.day_name = DAYS[self.day_name_step]
 			
 			for sim in self.alive_sims:
+				sim.relationships.find_new_sims(self.alive_sims)
+				sim.relationships.romantic.find_partners()
 				self.check_lists(sim)
 
-			self.find_all_partners()
-
 			print(self.day_name)
+		time.sleep(0.1)
 
 	def main_loop(self):
 		print('simulation started')
@@ -75,10 +76,6 @@ class Simulation:
 
 			elif len(self.alive_sims) >= max_sims:
 				self.stop_simulation()
-
-	def find_all_partners(self):
-		single_sims = [sim for sim in self.alive_sims if sim.relationships.romantic.partner is None and sim.info['age'][0] >= 3]
-		BaseSim().relationships.romantic.find_partners(single_sims)
 
 	def find_all_households(self, sim):
 		if sim.relationships.household not in self.households:
@@ -117,6 +114,7 @@ class Simulation:
 		print(f'name: {str(sim)}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]}')
 		print(str(sim.relationships.romantic.partner))
 		print('relationships:', [str(x) for x in sim.relationships.romantic.potential_partners])
+		print('friends:', [str(x) for x in sim.relationships.sims_met])
 		print('grandparents:', [str(x) for x in [x for x in sim.family.immediate.grandparents]])
 		print('parents:', [str(x)  for x in sim.family.immediate.parents])
 		print('siblings:', [str(x)  for x in sim.family.immediate.siblings])
