@@ -61,7 +61,7 @@ class Simulation:
 				self.check_lists(sim)
 
 			print(self.day_name)
-			
+
 		#time.sleep(0.1)
 
 	def main_loop(self):
@@ -113,6 +113,7 @@ class Simulation:
 
 	def print_data(self, sim):
 		print(f'name: {str(sim)}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]}')
+		print(f'genetics: {str(sim.genetics)}')
 		print(str(sim.relationships.romantic.partner))
 		print('relationships:', [str(x) for x in sim.relationships.romantic.potential_partners])
 		print('friends:', [str(x) for x in sim.relationships.sims_met])

@@ -4,6 +4,7 @@ from names import AllNames
 from family import Family
 from relationships import Relationships
 from ageing import Ageing
+from genetics import Genetics
 from globals import *
 
 basic_info = ['gender', 'name', 'age', 'is_pregnant', 'preference']
@@ -16,6 +17,7 @@ class BaseSim:
 
     def __init__(self):
         self.info = {}
+        self.genetics = Genetics(self)
         self.family = Family(self)
         self.ageing = Ageing(self)
         self.relationships = Relationships(self)
@@ -45,6 +47,7 @@ class BaseSim:
     def generate(self):
         self.set_basic_info()
         self.family.set_members()
+        self.genetics.set_spawned_genetics()
         self.family.gen = self.family.immediate.mother.family.gen + 1
         print(f'{self} spawned! {self.info["age"]}, {self.info["gender"]}, {self.info["preference"]}')
 
@@ -91,6 +94,9 @@ class SpawnedSim(BaseSim):
         mum, dad = SpawnedSim(), SpawnedSim()
         mum.family.immediate.mother, mum.family.immediate.father = SpawnedSim(), SpawnedSim()
         dad.family.immediate.mother, dad.family.immediate.father = SpawnedSim(), SpawnedSim()
+        grandparents = [mum.family.immediate.mother, mum.family.immediate.father,
+                        dad.family.immediate.mother, dad.family.immediate.father]
+        parents = [mum, dad]
         females = [mum, mum.family.immediate.mother, dad.family.immediate.mother]
         males = [dad, dad.family.immediate.father, mum.family.immediate.father]
 
@@ -105,8 +111,16 @@ class SpawnedSim(BaseSim):
                 sim.info.update({'gender': GENDERS[0]})
                 sim.info.update({'name': [random.choice(n.first_names[dad.info['gender']]), mum.info['name'][1]]})
                 sim.first_name, sim.surname = sim.info['name'][0], sim.info['name'][1]
-        
+
+        def get_genetics():
+            for sim in grandparents:
+                sim.genetics.set_genes()
+            for sim in parents:
+                sim.genetics.set_spawned_genetics()
+            
         parent_iterator()
+        get_genetics()
+
         self.family.immediate.mother, self.family.immediate.father = mum, dad
         mum.family.immediate.mother, mum.family.immediate.father = mum.family.immediate.mother, mum.family.immediate.father
         dad.family.immediate.mother, dad.family.immediate.father = dad.family.immediate.mother, dad.family.immediate.father
