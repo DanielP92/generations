@@ -1,20 +1,23 @@
 import random
 
-hair_colours = {'black': 'dominant',
-                'brown': 'dominant',
-                'auburn': 'dominant',
-                'blonde': 'recessive',
-                'ginger': 'recessive',
+hair_colours = {'black': 0.9,
+                'darkbrown': 0.8,
+                'brown': 0.75,
+                'lightbrown': 0.5,
+                'auburn': 0.35,
+                'blonde': 0.2,
+                'ginger': 0.1,
                 }
 
-eye_colours = {'black': 'dominant', 
-               'brown':'dominant', 
-               'hazel': 'dominant', 
-               'lightbrown': 'dominant', 
-               'darkblue': 'recessive',
-               'blue': 'recessive',
-               'lightblue': 'recessive', 
-               'grey': 'recessive',
+eye_colours = {'black': 0.9, 
+               'brown': 0.8, 
+               'hazel': 0.65, 
+               'lightbrown': 0.6, 
+               'darkblue': 0.45,
+               'blue': 0.3,
+               'lightblue': 0.15,
+               'green': 0.1, 
+               'grey': 0.05,
                }
 
 
@@ -53,18 +56,11 @@ class Gene:
 
     def set_expression(self):
         traits = [x.trait for x in self.pair]
-        trait_1 = self.choices[traits[0]]
-        trait_2 = self.choices[traits[1]]
 
-        if trait_1 == 'dominant' and trait_2 == 'dominant':
-            self.expression = random.choice(self.pair)
-        elif trait_1 == 'dominant' and trait_2 == 'recessive':
-            self.expression = self.pair[0]
-        elif trait_1 == 'recessive' and trait_2 == 'dominant':
-            self.expression = self.pair[1]
-        elif trait_1 == 'recessive' and trait_2 == 'recessive':
-            self.expression = random.choice(self.pair)
-
+        if self.choices[traits[0]] > self.choices[traits[1]] or self.choices[traits[0]] == self.choices[traits[1]]:
+            self.expression = traits[0]
+        elif self.choices[traits[0]] < self.choices[traits[1]]:
+            self.expression = traits[1]
 
 class HairColour(Gene):
     def __init__(self):
@@ -83,6 +79,7 @@ class EyeColour(Gene):
 class Allele:
     def __init__(self):
         self.trait = dict()
+        self.weighting = int()
 
     def __str__(self):
         return self.trait
