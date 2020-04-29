@@ -1,10 +1,7 @@
 import random
 import uuid
 from names import AllNames
-from family import Family
-from relationships import Relationships
-from ageing import Ageing
-from genetics import Genetics
+import sim_modules as modules
 from globals import *
 
 basic_info = ['gender', 'name', 'age', 'is_pregnant', 'preference']
@@ -17,10 +14,11 @@ class BaseSim:
 
     def __init__(self):
         self.info = {}
-        self.genetics = Genetics(self)
-        self.family = Family(self)
-        self.ageing = Ageing(self)
-        self.relationships = Relationships(self)
+        self.genetics = modules.Genetics(self)
+        self.family = modules.Family(self)
+        self.ageing = modules.Ageing(self)
+        self.relationships = modules.Relationships(self)
+        self.job = modules.BaseCareer(self)
 
         self.properties = [self.set_gender, self.set_name, self.set_age,
                            self.ageing.pregnancy.is_pregnant, self.relationships.set_preference]
