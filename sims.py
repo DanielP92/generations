@@ -1,65 +1,38 @@
 import random
 import uuid
-from names import AllNames
 import sim_modules as modules
 from globals import *
-
-basic_info = ['gender', 'name', 'age', 'is_pregnant', 'preference']
-
-n = AllNames()
 
 class BaseSim:
     day = 1
     step = 0
 
     def __init__(self):
-        self.info = {}
-        self.genetics = modules.Genetics(self)
+        self.info = modules.SimInfo(self)
         self.family = modules.Family(self)
-        self.ageing = modules.Ageing(self)
         self.relationships = modules.Relationships(self)
         self.job = modules.BaseCareer(self)
-
-        self.properties = [self.set_gender, self.set_name, self.set_age,
-                           self.ageing.pregnancy.is_pregnant, self.relationships.set_preference]
 
     def __str__(self):
         return f'{self.first_name} {self.surname}'
 
     def update(self):
         self.step += 1
-        self.ageing.pregnancy.pregnancy()
+        self.info.ageing.pregnancy.pregnancy()
 
         if self.step >= DAY_LENGTH:
             self.day += 1
             self.step = 0
-            self.ageing.update()
+            self.info.ageing.update()
             self.relationships.update()
 
-    def set_basic_info(self):
-        for func, item in zip(self.properties, basic_info):
-            self.add_to_info(item, func())
-
-        self.first_name, self.surname = self.info['name'][0], self.info['name'][1]
-
     def generate(self):
-        self.set_basic_info()
+        self.info.set_basic()
         self.family.set_members()
-        self.genetics.set_spawned_genetics()
+        self.info.genetics.set_spawned_genetics()
         self.family.gen = self.family.immediate.mother.family.gen + 1
-        print(f'{self} spawned! {self.info["age"]}, {self.info["gender"]}, {self.info["preference"]}')
+        print(f'{self} spawned! {self.info.basic["age"]}, {self.info.basic["gender"]}, {self.info.basic["preference"]}')
 
-    def add_to_info(self, prop, val):
-        self.info.update({prop: val})
-
-    def set_gender(self):
-        return random.choice(GENDERS)
-
-    def set_name(self):
-        return [random.choice(n.first_names[self.info['gender']]), self.family.immediate.mother.info['name'][1]]
-
-    def set_age(self):
-        return list(random.choice(list(self.ageing.ages.items())[3:6]))
 
     def give_birth(self):
         child = Offspring(self, self.relationships.romantic.partner)
@@ -67,8 +40,8 @@ class BaseSim:
 
         self.family.immediate.offspring.append(child)
         self.relationships.romantic.partner.family.immediate.offspring.append(child)
-        self.ageing.pregnancy.step, self.ageing.pregnancy.day = 0, 1
-        self.info['is_pregnant'] = False
+        self.info.ageing.pregnancy.step, self.info.ageing.pregnancy.day = 0, 1
+        self.info.basic['is_pregnant'] = False
 
         for offspring in self.family.immediate.offspring:
             offspring.family.immediate.update_siblings()
@@ -101,20 +74,20 @@ class SpawnedSim(BaseSim):
         def parent_iterator():
             for sim in females:
                 sim.family.u_id = self.family.u_id
-                sim.info.update({'gender': GENDERS[1]})
-                sim.info.update({'name': [random.choice(n.first_names[mum.info['gender']]), random.choice(n.surnames)]})
-                sim.first_name, sim.surname = sim.info['name'][0], sim.info['name'][1]
+                sim.info.basic.update({'gender': GENDERS[1]})
+                sim.info.basic.update({'name': [random.choice(NAMES.first_names[mum.info.basic['gender']]), random.choice(NAMES.surnames)]})
+                sim.first_name, sim.surname = sim.info.basic['name'][0], sim.info.basic['name'][1]
             for sim in males:
                 sim.family.u_id = self.family.u_id
-                sim.info.update({'gender': GENDERS[0]})
-                sim.info.update({'name': [random.choice(n.first_names[dad.info['gender']]), mum.info['name'][1]]})
-                sim.first_name, sim.surname = sim.info['name'][0], sim.info['name'][1]
+                sim.info.basic.update({'gender': GENDERS[0]})
+                sim.info.basic.update({'name': [random.choice(NAMES.first_names[dad.info.basic['gender']]), mum.info.basic['name'][1]]})
+                sim.first_name, sim.surname = sim.info.basic['name'][0], sim.info.basic['name'][1]
 
         def get_genetics():
             for sim in grandparents:
-                sim.genetics.set_genes()
+                sim.info.genetics.set_genes()
             for sim in parents:
-                sim.genetics.set_spawned_genetics()
+                sim.info.genetics.set_spawned_genetics()
             
         parent_iterator()
         get_genetics()
@@ -137,8 +110,8 @@ class Offspring(BaseSim):
         self.relationships.set_household_offspring(self)
 
     def set_age(self):
-        first_age = list(self.ageing.ages.keys())[0]
-        return [first_age, {key: value for key, value in self.ageing.ages[first_age].items()}]
+        first_age = list(self.info.ageing.ages.keys())[0]
+        return [first_age, {key: value for key, value in self.info.ageing.ages[first_age].items()}]
 
     def set_name(self):
-        return [random.choice(n.first_names[self.info['gender']]), self.family.immediate.mother.surname]
+        return [random.choice(NAMES.first_names[self.info.basic['gender']]), self.family.immediate.mother.surname]

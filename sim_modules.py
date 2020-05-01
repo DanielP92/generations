@@ -2,6 +2,59 @@ import random
 import uuid
 from globals import *
 
+# # # SIM INFORMATION # # #
+
+class SimInfo:
+    def __init__(self, sim):
+        self.sim = sim
+        self.basic = dict()
+        self.genetics = Genetics(self.sim)
+        self.ageing = Ageing(self.sim)
+    
+    def set_all(self):
+        self.set_basic()
+
+    def add_to_info(self, prop, val):
+        self.basic.update({prop: val})
+    
+    def set_basic(self):
+        basic_info = ['gender', 'name', 'age', 'preference', 'is_pregnant']
+        properties = [self.set_gender, self.set_name, self.set_age, self.set_preference, self.is_pregnant]
+
+        for func, item in zip(properties, basic_info):
+            self.add_to_info(item, func())
+
+        self.sim.first_name, self.sim.surname = self.basic['name'][0], self.basic['name'][1]
+
+    def set_name(self):
+        return [random.choice(NAMES.first_names[self.sim.info.basic['gender']]), self.sim.family.immediate.mother.info.basic['name'][1]]
+
+    def set_age(self):
+        return list(random.choice(list(self.sim.info.ageing.ages.items())[3:6]))
+
+    def set_gender(self):
+        return random.choice(GENDERS)
+
+    def set_preference(self):
+        homo_pc = 0.1
+        bi_pc = 0.3
+
+        if random.random() <= homo_pc:
+            return self.sim.info.basic['gender']
+        elif homo_pc > random.random() <= bi_pc:
+            return GENDERS[0] + GENDERS[1]
+        else:
+            for gender in GENDERS:
+                if gender != self.sim.info.basic['gender']:
+                    return gender
+
+    def is_pregnant(self):
+        if self.sim.info.basic['gender'] == 'girl':
+            return False
+        elif self.sim.info.basic['gender'] == 'boy':
+            return None
+
+
 # # # JOBS AND CAREERS # # #
 
 class Job:
@@ -66,8 +119,8 @@ class Genetics:
             value.set_expression()
 
     def set_spawned_genetics(self):
-        mother = self.sim.family.immediate.mother.genetics
-        father = self.sim.family.immediate.father.genetics
+        mother = self.sim.family.immediate.mother.info.genetics
+        father = self.sim.family.immediate.father.info.genetics
         hair_choices = [random.choice(mother.genes['hair-colour'].pair), random.choice(father.genes['hair-colour'].pair)]
         eye_choices = [random.choice(mother.genes['eye-colour'].pair), random.choice(father.genes['eye-colour'].pair)]
         self.genes['hair-colour'].pair = hair_choices
@@ -129,8 +182,6 @@ class EyeAllele(Allele):
 
 # # # FAMILY # # #
 
-import uuid
-
 class BaseFamily:
     def __init__(self, sim):
         self.sim = sim
@@ -180,8 +231,8 @@ class ExtendedFamily(BaseFamily):
         mum_siblings = self.sim.family.immediate.mother.family.immediate.siblings
         dad_siblings = self.sim.family.immediate.father.family.immediate.siblings
         all_siblings = [mum_siblings, dad_siblings]
-        self.aunts = [x for x in all_siblings for x in x if x.info['gender'] == 'girl']
-        self.uncles = [x for x in all_siblings for x in x if x.info['gender'] == 'boy']
+        self.aunts = [x for x in all_siblings for x in x if x.info.basic['gender'] == 'girl']
+        self.uncles = [x for x in all_siblings for x in x if x.info.basic['gender'] == 'boy']
 
     def update_cousins(self):
         offspring_list = [x.family.immediate.offspring for x in [self.aunts, self.uncles] for x in x if len(x.family.immediate.offspring) != 0]            
@@ -226,15 +277,15 @@ class Ageing:
         self.pregnancy = Pregnancy(self.sim)
 
     def age_up(self):
-        return [self.sim.info['age'][0], self.ages[self.sim.info['age'][0]]]
+        return [self.sim.info.basic['age'][0], self.ages[self.sim.info.basic['age'][0]]]
 
     def update(self):
-        self.sim.info['age'][1]['days_to_age_up'] -= 1
+        self.sim.info.basic['age'][1]['days_to_age_up'] -= 1
 
-        if self.sim.info['age'][1]['days_to_age_up'] < 0:
-            self.sim.info['age'][0] += 1
+        if self.sim.info.basic['age'][1]['days_to_age_up'] < 0:
+            self.sim.info.basic['age'][0] += 1
 
-            if self.sim.info['age'][0] > 7:
+            if self.sim.info.basic['age'][0] > 7:
                 self.sim.alive = False
                 try:
                     self.sim.relationships.household.members.remove(self.sim)
@@ -242,8 +293,8 @@ class Ageing:
                     pass
                 print(f'{self.sim.first_name} {self.sim.surname} died!')
             else:
-                self.sim.add_to_info('age', self.age_up())
-                print(f'{str(self.sim)} aged up to a(n) {self.sim.info["age"][1]["group"]}!')
+                self.sim.info.add_to_info('age', self.age_up())
+                print(f'{str(self.sim)} aged up to a(n) {self.sim.info.basic["age"][1]["group"]}!')
 
 class Pregnancy:
     step = 0
@@ -251,12 +302,6 @@ class Pregnancy:
 
     def __init__(self, sim):
         self.sim = sim
-
-    def is_pregnant(self):
-        if self.sim.info['gender'] == 'girl':
-            return False
-        elif self.sim.info['gender'] == 'boy':
-            return None
 
     def timer(self):
         self.step += 1
@@ -281,21 +326,20 @@ class Pregnancy:
         spawn_pc = self.set_chance()
 
         spawn_chance = random.random() < spawn_pc and self.sim.relationships.romantic.partner
-        pregnant = self.sim.info['is_pregnant']
+        pregnant = self.sim.info.basic['is_pregnant']
         hit = spawn_chance and not pregnant
-        female = self.sim.info['gender'] == 'girl'
-        old_enough = 4 <= self.sim.info['age'][0] <= 6
+        female = self.sim.info.basic['gender'] == 'girl'
+        old_enough = 4 <= self.sim.info.basic['age'][0] <= 6
 
         if female and old_enough and hit:
-            self.sim.info['is_pregnant'] = True
+            self.sim.info.basic['is_pregnant'] = True
             print(str(self.sim) + ' is pregnant!')
 
-        if self.sim.info['is_pregnant']:
+        if self.sim.info.basic['is_pregnant']:
             self.timer()
 
 
 # # # RELATIONSHIPS # # #
-
 
 class Household:
     def __init__(self):
@@ -316,16 +360,16 @@ class Romantic:
 
     def find_partners(self):
         single = self.sim.relationships.romantic.partner is None
-        age = self.sim.info['age'][0]
-        gender = self.sim.info['gender']
-        pref = self.sim.info['preference']
+        age = self.sim.info.basic['age'][0]
+        gender = self.sim.info.basic['gender']
+        pref = self.sim.info.basic['preference']
         uid = self.sim.family.immediate.grandparents[0].family.u_id
 
         for sim in self.sim.relationships.sims_met:
             sim_single = sim.relationships.romantic.partner is None
-            sim_gender = sim.info['gender']
-            sim_pref = sim.info['preference']
-            sim_age = sim.info['age'][0]
+            sim_gender = sim.info.basic['gender']
+            sim_pref = sim.info.basic['preference']
+            sim_age = sim.info.basic['age'][0]
             sim_uid = sim.family.immediate.grandparents[0].family.u_id
             chemistry = self.sim.relationships.romantic.set_chemistry_value(sim)
 
@@ -366,7 +410,7 @@ class Romantic:
                 else:
                     surname = f'{partner.surname}-{self.sim.surname}'
 
-            self.sim.info['name'][1] = partner.info['name'][1] = surname
+            self.sim.info.basic['name'][1] = partner.info.basic['name'][1] = surname
             self.sim.surname = partner.surname = surname
 
         def set_new_household():
@@ -453,19 +497,6 @@ class Relationships:
 
         elif len(self.sims_met) >= 100:
             pass
-
-    def set_preference(self):
-        homo_pc = 0.1
-        bi_pc = 0.3
-
-        if random.random() <= homo_pc:
-            return self.sim.info['gender']
-        elif homo_pc > random.random() <= bi_pc:
-            return GENDERS[0] + GENDERS[1]
-        else:
-            for gender in GENDERS:
-                if gender != self.sim.info['gender']:
-                    return gender
 
     def set_household_spawned(self, sim):
         self.household = Household()

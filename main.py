@@ -59,14 +59,14 @@ class SimulationData:
 
 			for sim in self.all_sims:
 				if original.family.u_id in sim.family.immediate.mother.family.u_id:
-					family_list.append([sim, [sim.family.immediate.mother.family.gen, sim.family.immediate.father.family.gen], sim.genetics, sim.family.gen])
+					family_list.append([sim, [sim.family.immediate.mother.family.gen, sim.family.immediate.father.family.gen], sim.info.genetics, sim.family.gen])
 					family_list.sort(key=lambda x: x[3])
 
 			print([[str(x[0]), x[1], str(x[2]), x[3]] for x in family_list])
 
 	def print_data(self, sim):
-		print(f'name: {str(sim)}, gender: {sim.info["gender"]}, pref: {sim.info["preference"]} age: {sim.info["age"][1]["group"]}')
-		print(f'genetics: {str(sim.genetics)}')
+		print(f'name: {str(sim)}, gender: {sim.info.basic["gender"]}, pref: {sim.info.basic["preference"]} age: {sim.info.basic["age"][1]["group"]}')
+		print(f'genetics: {str(sim.info.genetics)}')
 		print(str(sim.relationships.romantic.partner))
 		print('relationships:', [str(x) for x in sim.relationships.romantic.potential_partners])
 		print('friends:', [str(x) for x in sim.relationships.sims_met])
@@ -117,7 +117,7 @@ class Simulation:
 	def stop_simulation(self):
 		self.lists.get_original_sims()
 		for household in self.lists.households:
-			print([[str(x), x.info['age'][1]['group']] for x in household.members], household.u_id)
+			print([[str(x), x.info.basic['age'][1]['group']] for x in household.members], household.u_id)
 		self.running = False
 
 	def update_sims(self):
