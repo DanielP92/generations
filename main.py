@@ -3,7 +3,7 @@ import time
 from sims import BaseSim, SpawnedSim, Offspring
 from globals import *
 
-max_sims = 1000
+max_sims = 10
 
 class SimulationData:
 	def __init__(self):
@@ -31,7 +31,7 @@ class SimulationData:
 		self.find_all_households(sim)
 		self.check_offspring(sim)
 		self.check_dead_sims(sim)
-		#self.print_data(sim)
+		self.print_data(sim)
 
 	def check_dead_sims(self, sim):
 		if not sim.alive:
@@ -65,7 +65,9 @@ class SimulationData:
 			print([[str(x[0]), x[1], str(x[2]), x[3]] for x in family_list])
 
 	def print_data(self, sim):
-		print(f'name: {str(sim)}, gender: {sim.info.basic["gender"]}, pref: {sim.info.basic["preference"]} age: {sim.info.basic["age"][1]["group"]}')
+		print(f'name: {str(sim)}, gender: {sim.info.basic["gender"]}, pref: {sim.info.basic["preference"]} age: {sim.info.basic["age"][1]["group"]}, job: {str(sim.job)}')
+		print(f'job: {str(sim.job.job)}')
+		print(f'funds: {sim.relationships.household.funds}')
 		print(f'genetics: {str(sim.info.genetics)}')
 		print(str(sim.relationships.romantic.partner))
 		print('relationships:', [str(x) for x in sim.relationships.romantic.potential_partners])
@@ -123,6 +125,13 @@ class Simulation:
 	def update_sims(self):
 		for sim in self.lists.alive_sims:
 			sim.update()
+
+	def pay_wages(self, sim):
+		if sim.job.job is not None:
+			key = str(list(dict(sim.job.job.items()))[0])
+			
+			if self.day_name in sim.job.job[key]["Days"]:
+				sim.job.pay_wage()
 			
 	def igt(self):
 		self.step += 1
@@ -141,11 +150,12 @@ class Simulation:
 			for sim in self.lists.alive_sims:
 				sim.relationships.find_new_sims(self.lists.alive_sims)
 				sim.relationships.romantic.find_partners()
+				self.pay_wages(sim)
 				self.lists.check_lists(sim)
 
 			print(self.day_name)
 
-		#time.sleep(0.1)
+		time.sleep(0.1)
 
 
 s = Simulation()

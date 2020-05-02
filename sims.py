@@ -11,7 +11,7 @@ class BaseSim:
         self.info = modules.SimInfo(self)
         self.family = modules.Family(self)
         self.relationships = modules.Relationships(self)
-        self.job = modules.BaseCareer(self)
+        self.job = modules.CurrentJob(self)
 
     def __str__(self):
         return f'{self.first_name} {self.surname}'
@@ -25,6 +25,7 @@ class BaseSim:
             self.step = 0
             self.info.ageing.update()
             self.relationships.update()
+            self.job.update()
 
     def generate(self):
         self.info.set_basic()
@@ -32,7 +33,6 @@ class BaseSim:
         self.info.genetics.set_spawned_genetics()
         self.family.gen = self.family.immediate.mother.family.gen + 1
         print(f'{self} spawned! {self.info.basic["age"]}, {self.info.basic["gender"]}, {self.info.basic["preference"]}')
-
 
     def give_birth(self):
         child = Offspring(self, self.relationships.romantic.partner)

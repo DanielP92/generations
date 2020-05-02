@@ -1,5 +1,6 @@
 import random
 import uuid
+import careers
 from globals import *
 
 # # # SIM INFORMATION # # #
@@ -55,31 +56,35 @@ class SimInfo:
             return None
 
 
-# # # JOBS AND CAREERS # # #
+# # # JOB # # #
 
-class Job:
-    def __init__(self, title, wage):
-        self.title = title
-        self.wage = wage
-        self.level = int()
-
-finance_1 = Job("Admin Assistant", 10)
-finance_2 = Job("Expenses Assistant", 13)
-finance_3 = Job("Accounts Payable Assistant", 17)
-finance_4 = Job("Accounts Assistant", 28)
-finance_5 = Job("Assistant Accountant", 42)
-
-class BaseCareer:
+class CurrentJob:
     def __init__(self, sim):
         self.sim = sim
-        self.jobs = list()
-        self.current_job = None
+        self.career = None
+        self.job = None
 
+    def update(self):
+        get_job = 0.35
+        if self.sim.info.basic['age'][0] >= 5 and random.random() < get_job and self.job == None:
+            self.set_career()
+            self.set_job()
 
-class Finance(BaseCareer):
-    def __init__(self, sim):
-        super().__init__(sim)
+            key = list(dict(self.job.items()))[0]
+            print(f'{str(self.sim)} got a job as a {self.job[key]["Name"]}')
 
+    def set_career(self):
+        self.career = random.choice([subclass() for subclass in careers.BaseCareer.__subclasses__()])
+
+    def set_job(self):
+        self.job = self.career.first_job
+
+    def get_wage(self):
+        key = list(dict(self.job.items()))[0]
+        return self.job[key]['Wage'] * self.job[key]['Hours']
+
+    def pay_wage(self):
+        self.sim.relationships.household.funds += self.get_wage()
 
 # # # GENETICS # # #
 
