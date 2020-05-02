@@ -59,25 +59,45 @@ class SimInfo:
 # # # JOB # # #
 
 class CurrentJob:
+    promotion_progress = 35
+
     def __init__(self, sim):
         self.sim = sim
         self.career = None
         self.job = None
+        self.level = 0
 
     def update(self):
+        if self.job == None:
+            self.find_job()
+        else:
+            self.job_performance()
+
+    def find_job(self):
         get_job = 0.35
-        if self.sim.info.basic['age'][0] >= 5 and random.random() < get_job and self.job == None:
+        if self.sim.info.basic['age'][0] >= 5 and random.random() < get_job:
             self.set_career()
-            self.set_job()
+            self.job = self.set_job()
 
             key = list(dict(self.job.items()))[0]
             print(f'{str(self.sim)} got a job as a {self.job[key]["Name"]}')
 
     def set_career(self):
         self.career = random.choice([subclass() for subclass in careers.BaseCareer.__subclasses__()])
+        self.career.career_path = self.career.set_career_path()
+
+    def job_performance(self):
+        self.promotion_progress += int(random.uniform(-5, 8))
+        if self.promotion_progress >= 85:
+            self.job = self.set_job()
+            self.promotion_progress = 35
+            
+            key = list(dict(self.job.items()))[0]
+            print(f'str{self.sim} has been promoted to {self.job[key]["Name"]}')
 
     def set_job(self):
-        self.job = self.career.first_job
+        self.level += 1
+        return self.career.career_path[self.level]
 
     def get_wage(self):
         key = list(dict(self.job.items()))[0]

@@ -7,12 +7,12 @@ class BaseCareer:
     def __init__(self):
         self.path = str()
         self.jobs = dict()
-        self.first_job = None
+        self.career_path = dict()
 
     def update(self):
         pass
 
-    def set_jobs(self):
+    def find_jobs(self):
         columns = list(career_data)
 
         def check_path():
@@ -27,21 +27,28 @@ class BaseCareer:
         for ind in career_data.index:
             check_path()
 
-    def set_first_job(self):
-        return random.choice([{key: value} for key, value in self.jobs.items() if value['Level'] == 1])
+    def set_career_path(self):
+        level = 1
+        job_dict = dict()
+
+        for i in self.jobs:
+            if level <= 10:
+                job = random.choice([{key: value} for key, value in self.jobs.items() if value['Level'] == level])
+                job_dict.update({level: job})
+                level += 1
+                
+        return job_dict
 
 
 class FinanceCareer(BaseCareer):
     def __init__(self):
         super().__init__()
         self.path = "Finance"
-        self.set_jobs()
-        self.first_job = self.set_first_job()
+        self.find_jobs()
 
 
 class CulinaryCareer(BaseCareer):
     def __init__(self):
         super().__init__()
         self.path = "Culinary"
-        self.set_jobs()
-        self.first_job = self.set_first_job()
+        self.find_jobs()

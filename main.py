@@ -3,7 +3,7 @@ import time
 from sims import BaseSim, SpawnedSim, Offspring
 from globals import *
 
-max_sims = 10
+max_sims = 50
 
 class SimulationData:
 	def __init__(self):
@@ -66,7 +66,7 @@ class SimulationData:
 
 	def print_data(self, sim):
 		print(f'name: {str(sim)}, gender: {sim.info.basic["gender"]}, pref: {sim.info.basic["preference"]} age: {sim.info.basic["age"][1]["group"]}, job: {str(sim.job)}')
-		print(f'job: {str(sim.job.job)}')
+		print(f'job: {str(sim.job.job)} {sim.job.promotion_progress}')
 		print(f'funds: {sim.relationships.household.funds}')
 		print(f'genetics: {str(sim.info.genetics)}')
 		print(str(sim.relationships.romantic.partner))
@@ -129,7 +129,7 @@ class Simulation:
 	def pay_wages(self, sim):
 		if sim.job.job is not None:
 			key = str(list(dict(sim.job.job.items()))[0])
-			
+
 			if self.day_name in sim.job.job[key]["Days"]:
 				sim.job.pay_wage()
 			
