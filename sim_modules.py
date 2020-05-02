@@ -318,10 +318,20 @@ class Ageing(SimModule):
             if self.sim.info.basic['age'][0] > 7:
                 self.sim.alive = False
                 try:
-                    self.sim.relationships.household.members.remove(self.sim)
+                    household = self.sim.relationships.household.members
+                    household.remove(self.sim)
+
+                    print(f'{self.sim.first_name} {self.sim.surname} died!')
+
+                    if len(household) == 0:
+                        split = len(self.sim.family.immediate.offspring)
+                        amount = self.sim.relationships.household.funds / split
+                        
+                        for child in self.sim.family.immediate.offspring:
+                            child.relationships.household.funds += int(amount)
+                            print(f'{child} inherited {round(amount, 2)} from {self.sim}')
                 except:
                     pass
-                print(f'{self.sim.first_name} {self.sim.surname} died!')
             else:
                 self.sim.info.add_to_info('age', self.age_up())
                 print(f'{str(self.sim)} aged up to a(n) {self.sim.info.basic["age"][1]["group"]}!')
@@ -382,9 +392,10 @@ class Household:
         self.members.append(sim)
 
     def pay_bills(self):
-        per_person = 225
+        per_person = 350
         total_bills = per_person * len(self.members)
         self.funds -= total_bills
+
 
 class Romantic(SimModule):
     def __init__(self, sim):
@@ -449,16 +460,24 @@ class Romantic(SimModule):
             self.sim.surname = partner.surname = surname
 
         def set_new_household():
-            try:
-                self.sim.relationships.household.members.remove(self.sim)
-                self.partner.relationships.household.members.remove(self.partner)
-            except:
-                pass
-            self.sim.relationships.household = self.partner.relationships.household = Household()
+            sim_hh = self.sim.relationships.household
+            partner_hh = partner.relationships.household
+            sim_hh_split = len(sim_hh.members)
+            partner_hh_split = len(partner_hh.members)
+            sim_funds = sim_hh.funds / sim_hh_split
+            partner_funds = partner_hh.funds / partner_hh_split
+            sim_hh.funds -= sim_funds
+            partner_hh.funds -= partner_funds
+            new_hh_fund = sim_funds + partner_funds
+
+            self.sim.relationships.household.members.remove(self.sim)
+            partner.relationships.household.members.remove(partner)
+            self.sim.relationships.household = partner.relationships.household = Household()
             self.sim.relationships.household.add_member(self.sim)
             self.sim.relationships.household.add_member(partner)
+            self.sim.relationships.household.funds = new_hh_fund
 
-            print(f'{str(self.sim)} and {str(partner)} are now partners!')
+            print(f'{str(self.sim)} and {str(partner)} are now partners! Total household funds: {round(new_hh_fund, 2)}')
         
         def choose_partner():
             if self.sim in partner.relationships.romantic.potential_partners:

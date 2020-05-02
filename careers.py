@@ -28,14 +28,15 @@ class BaseCareer:
             check_path()
 
     def set_career_path(self):
-        level = 1
+        level = 0
         job_dict = dict()
 
         for i in self.jobs:
-            if level <= 10:
+            if level < 10:
+                level += 1
                 job = random.choice([{key: value} for key, value in self.jobs.items() if value['Level'] == level])
                 job_dict.update({level: job})
-                level += 1
+                
 
         return job_dict
 

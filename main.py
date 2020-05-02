@@ -3,7 +3,7 @@ import time
 from sims import BaseSim, SpawnedSim, Offspring
 from globals import *
 
-max_sims = 50
+max_sims = 100
 
 class SimulationData:
 	def __init__(self):
@@ -67,7 +67,7 @@ class SimulationData:
 	def print_data(self, sim):
 		print(f'name: {str(sim)}, gender: {sim.info.basic["gender"]}, pref: {sim.info.basic["preference"]} age: {sim.info.basic["age"][1]["group"]}, job: {str(sim.job)}')
 		print(f'job: {str(sim.job.job)} {sim.job.promotion_progress}')
-		print(f'funds: {sim.relationships.household.funds}')
+		print(f'funds: {round(sim.relationships.household.funds, 2)}')
 		print(f'genetics: {str(sim.info.genetics)}')
 		print(str(sim.relationships.romantic.partner))
 		print('relationships:', [str(x) for x in sim.relationships.romantic.potential_partners])
@@ -118,8 +118,9 @@ class Simulation:
 
 	def stop_simulation(self):
 		self.lists.get_original_sims()
+		self.lists.households.sort(key=lambda x: x.funds)
 		for household in self.lists.households:
-			print([[str(x), x.info.basic['age'][1]['group']] for x in household.members], household.u_id)
+			print([[str(x), x.info.basic['age'][1]['group']] for x in household.members], household.u_id, round(household.funds, 2))
 		self.running = False
 
 	def update_sims(self):
