@@ -132,6 +132,10 @@ class Simulation:
 
 			if self.day_name in sim.job.job[key]["Days"]:
 				sim.job.pay_wage()
+
+	def pay_bills(self):
+		for household in self.lists.households:
+			household.pay_bills()
 			
 	def igt(self):
 		self.step += 1
@@ -143,6 +147,7 @@ class Simulation:
 			if self.day_name_step < 7:
 				self.day_name_step += 1
 			else:
+				self.pay_bills()
 				self.day_name_step = 1
 
 			self.day_name = DAYS[self.day_name_step]

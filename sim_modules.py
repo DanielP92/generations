@@ -381,6 +381,11 @@ class Household:
     def add_member(self, sim):
         self.members.append(sim)
 
+    def pay_bills(self):
+        per_person = 225
+        total_bills = per_person * len(self.members)
+        self.funds -= total_bills
+
 class Romantic(SimModule):
     def __init__(self, sim):
         super().__init__(sim)
