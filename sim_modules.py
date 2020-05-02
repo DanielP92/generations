@@ -3,11 +3,16 @@ import uuid
 import careers
 from globals import *
 
-# # # SIM INFORMATION # # #
-
-class SimInfo:
+class SimModule:
     def __init__(self, sim):
         self.sim = sim
+
+
+# # # SIM INFORMATION # # #
+
+class SimInfo(SimModule):
+    def __init__(self, sim):
+        super().__init__(sim)
         self.basic = dict()
         self.genetics = Genetics(self.sim)
         self.ageing = Ageing(self.sim)
@@ -58,11 +63,11 @@ class SimInfo:
 
 # # # JOB # # #
 
-class CurrentJob:
+class CurrentJob(SimModule):
     promotion_progress = 35
 
     def __init__(self, sim):
-        self.sim = sim
+        super().__init__(sim)
         self.career = None
         self.job = None
         self.level = 0
@@ -80,20 +85,20 @@ class CurrentJob:
             self.job = self.set_job()
 
             key = list(dict(self.job.items()))[0]
-            print(f'{str(self.sim)} got a job as a {self.job[key]["Name"]}')
+            print(f'{self.sim} got a job as a {self.job[key]["Name"]}')
 
     def set_career(self):
         self.career = random.choice([subclass() for subclass in careers.BaseCareer.__subclasses__()])
         self.career.career_path = self.career.set_career_path()
 
     def job_performance(self):
-        self.promotion_progress += int(random.uniform(-5, 8))
-        if self.promotion_progress >= 85:
+        self.promotion_progress += int(random.uniform(-5, 10))
+        if self.promotion_progress >= 75:
             self.job = self.set_job()
             self.promotion_progress = 35
-            
+
             key = list(dict(self.job.items()))[0]
-            print(f'str{self.sim} has been promoted to {self.job[key]["Name"]}')
+            print(f'{self.sim} has been promoted to {self.job[key]["Name"]}')
 
     def set_job(self):
         self.level += 1
@@ -129,9 +134,9 @@ eye_colours = {'black': 0.9,
                'grey': 0.05,
                }
 
-class Genetics:
+class Genetics(SimModule):
     def __init__(self, sim):
-        self.sim = sim
+        super().__init__(sim)
         self.genes = {'hair-colour': HairColour(),
                       'eye-colour': EyeColour(),
                       }
@@ -207,9 +212,9 @@ class EyeAllele(Allele):
 
 # # # FAMILY # # #
 
-class BaseFamily:
+class BaseFamily(SimModule):
     def __init__(self, sim):
-        self.sim = sim
+        super().__init__(sim)
         self.gen = 0
 
     def update_iterator(self, list_1, list_2):
@@ -288,9 +293,9 @@ class Family(BaseFamily):
 
 # # # AGEING AND PREGNANCY # # #
 
-class Ageing:
+class Ageing(SimModule):
     def __init__(self, sim):
-        self.sim = sim
+        super().__init__(sim)
         self.ages = {1: {'group': 'baby', 'days_to_age_up': 7},
                      2: {'group': 'toddler', 'days_to_age_up': 7},
                      3: {'group': 'child', 'days_to_age_up': 14},
@@ -321,12 +326,12 @@ class Ageing:
                 self.sim.info.add_to_info('age', self.age_up())
                 print(f'{str(self.sim)} aged up to a(n) {self.sim.info.basic["age"][1]["group"]}!')
 
-class Pregnancy:
+class Pregnancy(SimModule):
     step = 0
     day = 1
 
     def __init__(self, sim):
-        self.sim = sim
+        super().__init__(sim)
 
     def timer(self):
         self.step += 1
@@ -376,9 +381,9 @@ class Household:
     def add_member(self, sim):
         self.members.append(sim)
 
-class Romantic:
+class Romantic(SimModule):
     def __init__(self, sim):
-        self.sim = sim
+        super().__init__(sim)
         self.partner = None
         self.potential_partners = dict()
         self.chemistry_value = random.choice(range(10))
@@ -481,17 +486,17 @@ class Romantic:
             return 1
 
 
-class Friendly:
+class Friendly(SimModule):
     def __init__(self, sim):
-        self.sim = sim
+        super().__init__(sim)
         self.sims_met = dict()
 
 
-class Relationships:
+class Relationships(SimModule):
     step = 0.01
 
     def __init__(self, sim):
-        self.sim = sim
+        super().__init__(sim)
         self.sims_met = dict()
         self.household = Household()
         self.romantic = Romantic(self.sim)

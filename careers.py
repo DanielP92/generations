@@ -36,7 +36,7 @@ class BaseCareer:
                 job = random.choice([{key: value} for key, value in self.jobs.items() if value['Level'] == level])
                 job_dict.update({level: job})
                 level += 1
-                
+
         return job_dict
 
 
@@ -51,4 +51,11 @@ class CulinaryCareer(BaseCareer):
     def __init__(self):
         super().__init__()
         self.path = "Culinary"
+        self.find_jobs()
+
+
+class LawCareer(BaseCareer):
+    def __init__(self):
+        super().__init__()
+        self.path = "Law"
         self.find_jobs()
