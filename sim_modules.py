@@ -75,7 +75,7 @@ class CurrentJob(SimModule):
     def update(self):
         if self.job == None:
             self.find_job()
-        else:
+        elif self.job and self.level < 10:
             self.job_performance()
 
     def find_job(self):
@@ -129,6 +129,7 @@ eye_colours = {'black': 0.9,
                'hazel': 0.6, 
                'darkblue': 0.45,
                'blue': 0.3,
+               'amber': 0.2,
                'lightblue': 0.15,
                'green': 0.1, 
                'grey': 0.05,
@@ -326,7 +327,7 @@ class Ageing(SimModule):
                     if len(household) == 0:
                         split = len(self.sim.family.immediate.offspring)
                         amount = self.sim.relationships.household.funds / split
-                        
+
                         for child in self.sim.family.immediate.offspring:
                             child.relationships.household.funds += int(amount)
                             print(f'{child} inherited {round(amount, 2)} from {self.sim}')
@@ -360,7 +361,7 @@ class Pregnancy(SimModule):
         elif 3 <= no_of_children <= 5:
             return 0.0005
         else:
-            return 0.00005
+            return 0.000075
 
     def pregnancy(self):
         spawn_pc = self.set_chance()
@@ -464,14 +465,27 @@ class Romantic(SimModule):
             partner_hh = partner.relationships.household
             sim_hh_split = len(sim_hh.members)
             partner_hh_split = len(partner_hh.members)
-            sim_funds = sim_hh.funds / sim_hh_split
-            partner_funds = partner_hh.funds / partner_hh_split
-            sim_hh.funds -= sim_funds
-            partner_hh.funds -= partner_funds
+
+            if sim_hh.funds > 0:
+                sim_funds = sim_hh.funds / sim_hh_split
+                sim_hh.funds -= sim_funds
+            elif sim_hh.funds <= 0:
+                sim_funds = 1500
+
+            if partner_hh.funds > 0:
+                partner_funds = partner_hh.funds / partner_hh_split
+                partner_hh.funds -= partner_funds
+            elif partner_hh.funds <= 0:
+                partner_funds = 1500
+
             new_hh_fund = sim_funds + partner_funds
 
-            self.sim.relationships.household.members.remove(self.sim)
-            partner.relationships.household.members.remove(partner)
+            try:
+                self.sim.relationships.household.members.remove(self.sim)
+                partner.relationships.household.members.remove(partner)
+            except:
+                pass
+
             self.sim.relationships.household = partner.relationships.household = Household()
             self.sim.relationships.household.add_member(self.sim)
             self.sim.relationships.household.add_member(partner)
@@ -549,7 +563,7 @@ class Relationships(SimModule):
         if sim not in self.sims_met and sim != self.sim and meet_chance():
             self.sims_met.update({sim: int()})
 
-        elif len(self.sims_met) >= 100:
+        elif len(self.sims_met) >= 75:
             pass
 
     def set_household_spawned(self, sim):

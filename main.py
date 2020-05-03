@@ -3,7 +3,7 @@ import time
 from sims import BaseSim, SpawnedSim, Offspring
 from globals import *
 
-max_sims = 100
+max_sims = 1000
 
 class SimulationData:
 	def __init__(self):
@@ -31,7 +31,7 @@ class SimulationData:
 		self.find_all_households(sim)
 		self.check_offspring(sim)
 		self.check_dead_sims(sim)
-		self.print_data(sim)
+		#self.print_data(sim)
 
 	def check_dead_sims(self, sim):
 		if not sim.alive:
@@ -154,14 +154,18 @@ class Simulation:
 			self.day_name = DAYS[self.day_name_step]
 			
 			for sim in self.lists.alive_sims:
-				sim.relationships.find_new_sims(self.lists.alive_sims)
-				sim.relationships.romantic.find_partners()
+				if sim.relationships.romantic.partner == None:
+					sim.relationships.find_new_sims(self.lists.alive_sims)
+					sim.relationships.romantic.find_partners()
+
+				if self.day_name == "Monday":
+					self.lists.check_lists(sim)
+
 				self.pay_wages(sim)
-				self.lists.check_lists(sim)
 
 			print(self.day_name)
 
-		time.sleep(0.1)
+		#time.sleep(0.1)
 
 
 s = Simulation()
