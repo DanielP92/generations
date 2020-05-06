@@ -9,6 +9,9 @@ class BaseCareer:
         self.jobs = dict()
         self.career_path = dict()
 
+    def __str__(self):
+        return self.path
+
     def update(self):
         pass
 
@@ -39,7 +42,7 @@ class BaseCareer:
                 
 
         return job_dict
-
+        
 
 class FinanceCareer(BaseCareer):
     def __init__(self):

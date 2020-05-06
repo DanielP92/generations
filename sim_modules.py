@@ -327,10 +327,12 @@ class Ageing(SimModule):
                     if len(household) == 0:
                         split = len(self.sim.family.immediate.offspring)
                         amount = self.sim.relationships.household.funds / split
-
-                        for child in self.sim.family.immediate.offspring:
-                            child.relationships.household.funds += int(amount)
-                            print(f'{child} inherited {round(amount, 2)} from {self.sim}')
+                        if split == 0:
+                            pass
+                        else:
+                            for child in self.sim.family.immediate.offspring:
+                                child.relationships.household.funds += int(amount)
+                                print(f'{child} inherited {round(amount, 2)} from {self.sim}')
                 except:
                     pass
             else:
@@ -359,9 +361,9 @@ class Pregnancy(SimModule):
         if no_of_children < 3:
             return 0.005
         elif 3 <= no_of_children <= 5:
-            return 0.0005
+            return 0.001
         else:
-            return 0.000075
+            return 0.0005
 
     def pregnancy(self):
         spawn_pc = self.set_chance()

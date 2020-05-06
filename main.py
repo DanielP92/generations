@@ -3,7 +3,7 @@ import time
 from sims import BaseSim, SpawnedSim, Offspring
 from globals import *
 
-max_sims = 1000
+max_sims = 2500
 
 class SimulationData:
 	def __init__(self):
