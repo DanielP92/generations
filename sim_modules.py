@@ -1,4 +1,5 @@
 import random
+import time
 import uuid
 import careers
 from globals import *
@@ -337,6 +338,7 @@ class Ageing(SimModule):
                             for child in self.sim.family.immediate.offspring:
                                 child.relationships.household.funds += int(amount)
                                 print(f'{child} inherited {round(amount, 2)} from {self.sim}')
+                        del household
                 except:
                     pass
             else:
@@ -413,35 +415,28 @@ class Romantic(SimModule):
         self.chemistry_value = random.choice(range(10))
 
     def find_partners(self):
-        single = self.sim.relationships.romantic.partner is None
-        age = self.sim.info.basic['age'][0]
-        gender = self.sim.info.basic['gender']
-        pref = self.sim.info.basic['preference']
-        uid = self.sim.family.immediate.grandparents[0].family.u_id
+        sim_data = self.sim.info.basic
+        age = sim_data['age'][0]
+        pref = sim_data['preference']
+        relations = self.sim.relationships
 
-        for sim in self.sim.relationships.sims_met:
-            sim_single = sim.relationships.romantic.partner is None
-            sim_gender = sim.info.basic['gender']
-            sim_pref = sim.info.basic['preference']
-            sim_age = sim.info.basic['age'][0]
-            sim_uid = sim.family.immediate.grandparents[0].family.u_id
-            chemistry = self.sim.relationships.romantic.set_chemistry_value(sim)
+        def uids(sim):
+            ids = []
+            for item in sim.family.immediate.grandparents:
+                ids.append(item.family.u_id)
 
-            single_check = single == sim_single
-            age_check = age == sim_age and sim_age >= 4
-            gender_check = gender in sim_pref and sim_gender in pref
-            family_check = uid not in sim_uid and sim_uid not in uid
+            return ids
 
-            if single_check and age_check and gender_check and family_check and chemistry >= 1.1:
-                if sim in self.sim.relationships.romantic.potential_partners:
-                    pass
-                else:
-                    self.sim.relationships.romantic.potential_partners.update({sim: int()})
+        single_sims = [sim for sim in relations.sims_met if sim.relationships.romantic.partner is None and sim.info.basic['gender'] in pref and (age == sim.info.basic['age'][0] and age >= 4)]
+        sim_id = uids(self.sim)
 
-            partners = self.sim.relationships.romantic.potential_partners
+        for sim in single_sims:
+            other_id = uids(sim)
+            chemistry = relations.romantic.set_chemistry_value(sim)
+            if sim_data['gender'] not in sim.info.basic['preference'] or any(sim_id) == any(other_id) and chemistry < 1.1:
+                single_sims.remove(sim)
 
-            if self.sim in partners:
-                del self.sim.relationships.romantic.potential_partners[self.sim]
+            relations.romantic.potential_partners.update({sim: int()})
 
     def set_partner(self):
         threshold = 65
@@ -470,6 +465,16 @@ class Romantic(SimModule):
             partner_hh = partner.relationships.household
             sim_hh_split = len(sim_hh.members)
             partner_hh_split = len(partner_hh.members)
+
+            if partner_hh_split == 0:
+                print("ERROR: SIM NOT IN OWN HOUSEHOLD")
+                partner_hh_split += 1
+                time.sleep(3)
+
+            if sim_hh_split == 0:
+                print("ERROR: SIM NOT IN OWN HOUSEHOLD")
+                sim_hh_split += 1
+                time.sleep(3)
 
             if sim_hh.funds > 0:
                 sim_funds = sim_hh.funds / sim_hh_split

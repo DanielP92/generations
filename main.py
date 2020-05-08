@@ -3,7 +3,7 @@ import time
 from sims import BaseSim, SpawnedSim, Offspring
 from globals import *
 
-max_sims = 2500
+max_sims = 1000
 
 
 class SimulationData:
@@ -29,7 +29,6 @@ class SimulationData:
         self.add_family_to_list(family)
 
     def check_lists(self, sim):
-        self.find_all_households(sim)
         self.check_offspring(sim)
         self.check_dead_sims(sim)
         # self.print_data(sim)
@@ -43,27 +42,17 @@ class SimulationData:
             if child not in self.all_sims or child.family not in self.families:
                 self.add_to_lists(child, child.family)
 
-    def find_all_households(self, sim):
-        if sim.relationships.household not in self.households:
-            self.households.append(sim.relationships.household)
-            self.households.sort(key=lambda x: x.u_id)
-
-        for household in self.households:
-            if len(household.members) == 0:
-                self.households.remove(household)
-
     def get_original_sims(self):
-        originals = [sim for sim in self.all_sims if isinstance(sim, SpawnedSim)]
+        all_originals = [sim for sim in self.all_sims if isinstance(sim, SpawnedSim)]
 
-        for original in originals:
+        for original in all_originals:
             family_list = []
+            for offspring in self.all_sims:
+                if original in offspring.originals:
+                    family_list.append([offspring, offspring.family.gen])
+                    family_list.sort(key=lambda x: x[1])
 
-            for sim in self.all_sims:
-                if original.family.u_id in sim.family.immediate.mother.family.u_id:
-                    family_list.append([sim, [sim.family.immediate.mother.family.gen, sim.family.immediate.father.family.gen], sim.info.genetics, sim.family.gen])
-                    family_list.sort(key=lambda x: x[3])
-
-            print([[str(x[0]), x[1], str(x[2]), x[3]] for x in family_list])
+            print([[str(x[0]), x[1]] for x in family_list])
 
     def print_data(self, sim):
         print(f'name: {str(sim)}, gender: {sim.info.basic["gender"]}, pref: {sim.info.basic["preference"]} age: {sim.info.basic["age"][1]["group"]}, job: {str(sim.job)}')
@@ -106,12 +95,13 @@ class Simulation:
             if len(self.lists.alive_sims) <= max_sims:
                 self.update_sims()
                 self.spawn_sim()
+                print(len(self.lists.alive_sims))
 
             elif len(self.lists.alive_sims) >= max_sims:
                 self.stop_simulation()
 
     def spawn_sim(self):
-        spawn_pc = 0.025
+        spawn_pc = 0.0375
         if random.random() < spawn_pc:
             sim = SpawnedSim()
             sim.generate()

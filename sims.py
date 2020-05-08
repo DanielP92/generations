@@ -32,7 +32,7 @@ class BaseSim:
         self.info.set_basic()
         self.family.set_members()
         self.info.genetics.set_spawned_genetics()
-        self.family.gen = self.family.immediate.mother.family.gen + 1
+        self.family.gen = max([self.family.immediate.mother.family.gen + 1, self.family.immediate.father.family.gen + 1])
         print(f'{self} spawned! {self.info.basic["age"]}, {self.info.basic["gender"]}, {self.info.basic["preference"]}')
 
     def give_birth(self):
@@ -55,6 +55,7 @@ class SpawnedSim(BaseSim):
 
     def __init__(self):
         super().__init__()
+        self.originals = [self, self]
 
     def generate(self):
         self.set_parents()
@@ -104,6 +105,7 @@ class Offspring(BaseSim):
     def __init__(self, mother, father):
         super().__init__()
         self.family.immediate.mother, self.family.immediate.father = mother, father
+        self.originals = mother.originals + father.originals
         self.family.u_id = str(self.family.immediate.mother.family.u_id) + str(self.family.immediate.father.family.u_id)
 
     def generate(self):
