@@ -13,10 +13,11 @@ last_name_url = 'https://surnames.behindthename.com/names/'
 first_names_urls = [female_names_url, male_names_url]
 surname_urls = [last_name_url + f'letter/{letter}/0' for letter in alphabet]
 
+
 class AllNames:
     first_names = {'boy': [], 'girl': []}
     surnames = []
-    
+
     def __init__(cls):
         if os.path.exists('surnames.txt'):
             print('surnames.txt exists')
@@ -26,10 +27,9 @@ class AllNames:
         print('getting first names...')
         for url in first_names_urls:
             cls.get_first_names(url)
-            
+
         print('getting surnames')
         cls.get_surnames()
-
 
     def write_all_surnames(cls):
         for url in surname_urls:
@@ -49,7 +49,7 @@ class AllNames:
                     cls.first_names[key].append(name)
 
     def get_surnames(cls):
-        with open('surnames.txt','r', encoding='utf-8') as text_file:
+        with open('surnames.txt', 'r', encoding='utf-8') as text_file:
             for name in text_file:
                 cls.surnames.append(name.strip())
 

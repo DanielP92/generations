@@ -3,6 +3,7 @@ import pandas as pd
 
 career_data = pd.read_excel(open('career_info.xlsx', 'rb'))
 
+
 class BaseCareer:
     def __init__(self):
         self.path = str()
@@ -39,10 +40,9 @@ class BaseCareer:
                 level += 1
                 job = random.choice([{key: value} for key, value in self.jobs.items() if value['Level'] == level])
                 job_dict.update({level: job})
-                
 
         return job_dict
-        
+
 
 class FinanceCareer(BaseCareer):
     def __init__(self):

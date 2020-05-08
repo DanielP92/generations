@@ -3,6 +3,7 @@ import uuid
 import careers
 from globals import *
 
+
 class SimModule:
     def __init__(self, sim):
         self.sim = sim
@@ -16,13 +17,13 @@ class SimInfo(SimModule):
         self.basic = dict()
         self.genetics = Genetics(self.sim)
         self.ageing = Ageing(self.sim)
-    
+
     def set_all(self):
         self.set_basic()
 
     def add_to_info(self, prop, val):
         self.basic.update({prop: val})
-    
+
     def set_basic(self):
         basic_info = ['gender', 'name', 'age', 'preference', 'is_pregnant']
         properties = [self.set_gender, self.set_name, self.set_age, self.set_preference, self.is_pregnant]
@@ -113,6 +114,7 @@ class CurrentJob(SimModule):
 
 # # # GENETICS # # #
 
+
 hair_colours = {'black': 0.9,
                 'darkbrown': 0.8,
                 'brown': 0.75,
@@ -123,17 +125,18 @@ hair_colours = {'black': 0.9,
                 'ginger': 0.1,
                 }
 
-eye_colours = {'black': 0.9, 
-               'brown': 0.8, 
-               'lightbrown': 0.65, 
-               'hazel': 0.6, 
+eye_colours = {'black': 0.9,
+               'brown': 0.8,
+               'lightbrown': 0.65,
+               'hazel': 0.6,
                'darkblue': 0.45,
                'blue': 0.3,
                'amber': 0.2,
                'lightblue': 0.15,
-               'green': 0.1, 
+               'green': 0.1,
                'grey': 0.05,
                }
+
 
 class Genetics(SimModule):
     def __init__(self, sim):
@@ -175,6 +178,7 @@ class Gene:
             self.expression = traits[0]
         elif self.choices[traits[0]] < self.choices[traits[1]]:
             self.expression = traits[1]
+
 
 class HairColour(Gene):
     def __init__(self):
@@ -266,9 +270,9 @@ class ExtendedFamily(BaseFamily):
         self.uncles = [x for x in all_siblings for x in x if x.info.basic['gender'] == 'boy']
 
     def update_cousins(self):
-        offspring_list = [x.family.immediate.offspring for x in [self.aunts, self.uncles] for x in x if len(x.family.immediate.offspring) != 0]            
+        offspring_list = [x.family.immediate.offspring for x in [self.aunts, self.uncles] for x in x if len(x.family.immediate.offspring) != 0]
         self.update_iterator(offspring_list, self.cousins)
-        
+
     def update_second_cousins(self):
         mum_cousins = self.sim.family.immediate.mother.family.extended.cousins
         dad_cousins = self.sim.family.immediate.father.family.extended.cousins
@@ -284,9 +288,9 @@ class Family(BaseFamily):
         self.functions = [self.immediate.update_parents, self.immediate.update_grandparents,
                           self.immediate.update_siblings, self.extended.update_aunts_uncles,
                           self.extended.update_cousins, self.extended.update_second_cousins,
-                         ]
+                          ]
         self.u_id = str(uuid.uuid4())
-    
+
     def set_members(self):
         for func in self.functions:
             func()
@@ -304,7 +308,7 @@ class Ageing(SimModule):
                      5: {'group': 'yng_adult', 'days_to_age_up': 28},
                      6: {'group': 'adult', 'days_to_age_up': 60},
                      7: {'group': 'elder', 'days_to_age_up': 28},
-                    }
+                     }
         self.pregnancy = Pregnancy(self.sim)
 
     def age_up(self):
@@ -338,6 +342,7 @@ class Ageing(SimModule):
             else:
                 self.sim.info.add_to_info('age', self.age_up())
                 print(f'{str(self.sim)} aged up to a(n) {self.sim.info.basic["age"][1]["group"]}!')
+
 
 class Pregnancy(SimModule):
     step = 0
@@ -427,7 +432,6 @@ class Romantic(SimModule):
             gender_check = gender in sim_pref and sim_gender in pref
             family_check = uid not in sim_uid and sim_uid not in uid
 
-
             if single_check and age_check and gender_check and family_check and chemistry >= 1.1:
                 if sim in self.sim.relationships.romantic.potential_partners:
                     pass
@@ -438,7 +442,6 @@ class Romantic(SimModule):
 
             if self.sim in partners:
                 del self.sim.relationships.romantic.potential_partners[self.sim]
-
 
     def set_partner(self):
         threshold = 65
@@ -494,7 +497,7 @@ class Romantic(SimModule):
             self.sim.relationships.household.funds = new_hh_fund
 
             print(f'{str(self.sim)} and {str(partner)} are now partners! Total household funds: {round(new_hh_fund, 2)}')
-        
+
         def choose_partner():
             if self.sim in partner.relationships.romantic.potential_partners:
                 rel1 = self.sim.relationships.romantic.potential_partners[partner]
@@ -509,13 +512,13 @@ class Romantic(SimModule):
         for partner in self.potential_partners:
             choose_partner()
 
-    def chemistry_between(self, x):    
+    def chemistry_between(self, x):
         chemistries = [self.chemistry_value, x.relationships.romantic.chemistry_value]
         return max(chemistries) - min(chemistries)
 
     def set_chemistry_value(self, x):
         difference = self.chemistry_between(x)
-        
+
         if difference == 0:
             return 2.75
         elif difference == 1:
@@ -579,7 +582,7 @@ class Relationships(SimModule):
     def distance_between(self, x):
         distances = [self.sim.relationships.household.location, x.relationships.household.location]
         return max(distances) - min(distances)
-      
+
     def set_distance_value(self, x):
         total_distance = self.distance_between(x)
 

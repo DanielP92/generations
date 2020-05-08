@@ -3,6 +3,7 @@ import uuid
 import sim_modules as modules
 from globals import *
 
+
 class BaseSim:
     day = 1
     step = 0
@@ -45,10 +46,10 @@ class BaseSim:
 
         for offspring in self.family.immediate.offspring:
             offspring.family.immediate.update_siblings()
-        
+
         print(f'{str(self)} gave birth to {str(child)}!')
 
-    
+
 class SpawnedSim(BaseSim):
     alive = True
 
@@ -88,7 +89,7 @@ class SpawnedSim(BaseSim):
                 sim.info.genetics.set_genes()
             for sim in parents:
                 sim.info.genetics.set_spawned_genetics()
-            
+
         parent_iterator()
         get_genetics()
 
