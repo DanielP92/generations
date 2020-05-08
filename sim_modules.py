@@ -508,7 +508,7 @@ class Romantic(SimModule):
                 rel1 = self.sim.relationships.romantic.potential_partners[partner]
                 rel2 = partner.relationships.romantic.potential_partners[self.sim]
 
-                if rel1 >= threshold and rel2 >= threshold and self.partner == None and partner.relationships.romantic.partner == None:
+                if rel1 >= threshold and rel2 >= threshold:
                     partner.relationships.romantic.partner = self.sim
                     self.partner = partner
                     set_surnames()

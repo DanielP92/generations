@@ -3,7 +3,7 @@ import time
 from sims import BaseSim, SpawnedSim, Offspring
 from globals import *
 
-max_sims = 1000
+max_sims = 2500
 
 
 class SimulationData:
@@ -101,11 +101,13 @@ class Simulation:
                 self.stop_simulation()
 
     def spawn_sim(self):
-        spawn_pc = 0.0375
+        spawn_pc = 0.025
         if random.random() < spawn_pc:
             sim = SpawnedSim()
             sim.generate()
             self.lists.add_to_lists(sim, sim.family)
+
+            print(f'{sim} spawned! {sim.info.basic["age"]}, {sim.info.basic["gender"]}, {sim.info.basic["preference"]}')
 
     def stop_simulation(self):
         self.lists.get_original_sims()
